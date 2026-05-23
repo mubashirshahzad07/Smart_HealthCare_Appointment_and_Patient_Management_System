@@ -6,11 +6,6 @@ import java.util.Properties;
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class EmailService {
-
-    public static void main(String[] args) {
-        sendEmail("smtptrial63@gmail.com, another@gmail.com");
-    }
-
     /**
      * sends email given the recipient addresses
      * @param to recipient addresses (format: "email(1), email(2), email(3), ... , email(n)")
@@ -22,7 +17,9 @@ public class EmailService {
 
         String host = "smtp.gmail.com";
         String from = "patientmanagementsystem2026@gmail.com";
-        String password = "fuwd uhtl luxe aude";
+
+        Dotenv dotenv = Dotenv.load();
+        String password = dotenv.get("APP_PASSWORD");
 
         Properties properties = new Properties();
         properties.put("mail.smtp.host", host);
