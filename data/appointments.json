@@ -1,0 +1,12 @@
+[ {
+  "appointmentId" : "APPT-0001",
+  "appointmentDate" : "2026-05-25",
+  "appointmentHour" : 20,
+  "patientId" : "PAT-001",
+  "doctorId" : "DOCT-0001",
+  "receptionistId" : "RECP-0001",
+  "patientDescription" : "ILL",
+  "status" : "SCHEDULED",
+  "type" : "REGULAR",
+  "willingToReschedule" : true
+} ]
