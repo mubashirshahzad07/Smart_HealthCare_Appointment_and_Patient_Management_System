@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import patient.management.system.dao.IdDao;
 import patient.management.system.service.EmailService;
 
-@JsonIgnoreProperties({"password", "role"})
-public class Patient extends User {
+public class Patient {
     private String patientId;
     private String gender;
+    private String name;
     private int age;
     private String email;
 
@@ -15,19 +15,12 @@ public class Patient extends User {
 
     /**
      * @throws RuntimeException if email format is invalid [email format: ....@gmail.com]
-     * @param name
-     * @param username
-     * @param password
-     * @param gender
-     * @param age
-     * @param email
      */
-    public Patient(String name, String username, String password, String gender, int age, String email) {
-        super(username, name, password, Role.PATIENT);
-
+    public Patient(String name, String gender, int age, String email) {
         this.patientId = IdDao.getPatientId();
         this.gender = gender;
         this.age = age;
+        this.name = name;
 
         if (EmailService.isValidEmail(email)) {
             this.email = email;
@@ -42,6 +35,10 @@ public class Patient extends User {
 
     public String getGender() {
         return gender;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public int getAge() {

@@ -16,15 +16,9 @@ public class PatientDAO {
 
     /**
      * @throws RuntimeException if email format is invalid [email format: .....@gmail.com]
-     * @param name
-     * @param username
-     * @param password
-     * @param gender
-     * @param age
-     * @param email
      */
-    public void addPatient(String name, String username, String password, String gender, int age, String email) {
-        Patient newPatient = new Patient(name, username, password, gender, age, email);
+    public void addPatient(String name, String gender, int age, String email) {
+        Patient newPatient = new Patient(name, gender, age, email);
 
         ArrayList<Patient> patients = getPatientsInternal();
         patients.add(newPatient);
@@ -52,6 +46,20 @@ public class PatientDAO {
         } catch (IOException e) {
             throw new RuntimeException("Unable to load patients data.");
         }
+    }
+
+    /**
+     * checks if the patient is registered
+     */
+    public void patientRegistered(String patientId) {
+        PatientDAO patientDAO = new PatientDAO();
+        List<PatientDTO> patients = patientDAO.getPatients();
+
+        for (PatientDTO patient : patients) {
+            if (patient.getPatientId().equals(patientId)) return;
+        }
+
+        throw new RuntimeException("Patient is not registered.");
     }
 
     public List<PatientDTO> getPatients() {
