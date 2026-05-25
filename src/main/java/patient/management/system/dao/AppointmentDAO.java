@@ -23,10 +23,11 @@
      }
 
 
-     public void addAppointment(int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
-                                String patientId, String doctorId, String receptionistId, String patientDescription,
-                                Appointment.Status status, Appointment.Type type, boolean willingToReschedule
-                                ) {
+     public void addAppointment(
+             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
+             String patientId, String doctorId, String receptionistId, String patientDescription,
+             Appointment.Status status, Appointment.Type type, boolean willingToReschedule
+     ) {
 
          PatientDAO patientDAO = new PatientDAO();
          patientDAO.patientRegistered(patientId);
@@ -65,7 +66,7 @@
      }
 
      /**
-      * checks if the selected slot is available and within working hours
+      * checks if the selected slot is available and within working hours (for regular appointments)
       */
      private void slotAvailable(ArrayList<Appointment> appointments, String appointmentDate, int appointmentHour, String doctorId, Appointment.Type type) {
          final int OPENING_HOUR = 9;

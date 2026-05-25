@@ -19,9 +19,12 @@ public class DoctorDAO {
     }
 
     public void addDoctor(String username, String password, String doctorName, String department, double appointmentFee) {
-        Doctor newDoctor = new Doctor(username, password, doctorName, department, appointmentFee);
 
         ArrayList<Doctor> doctors = getDoctorsInternal();
+
+        usernameAvailable(doctors, username);
+
+        Doctor newDoctor = new Doctor(username, password, doctorName, department, appointmentFee);
         doctors.add(newDoctor);
 
         try {
@@ -46,6 +49,14 @@ public class DoctorDAO {
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load doctors data.");
+        }
+    }
+
+    private void usernameAvailable(List<Doctor> doctors, String username) {
+        for (Doctor doctor : doctors) {
+            if (username.equals(doctor.getUsername())) {
+                throw new RuntimeException("Username already taken.");
+            }
         }
     }
 
