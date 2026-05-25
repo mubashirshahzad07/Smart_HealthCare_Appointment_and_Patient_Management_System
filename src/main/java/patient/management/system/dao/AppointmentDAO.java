@@ -70,16 +70,22 @@
       * @param doctorId
       */
      private void slotAvailable(ArrayList<Appointment> appointments, String appointmentDate, int appointmentHour, String doctorId) {
-         int openingHour = 9;
-         int closingHour = 21;
+         final int OPENING_HOUR = 9;
+         final int CLOSING_HOUR = 21;
+
+         boolean appointmentHourOutOfRange = (appointmentHour < OPENING_HOUR || appointmentHour >= CLOSING_HOUR);
+
+         if (appointmentHourOutOfRange) {
+             throw new RuntimeException("Unable to book slot.\nHospital timing: " + OPENING_HOUR + " - " + CLOSING_HOUR);
+         }
 
          for (Appointment appointment : appointments) {
-             if (
-                 (appointment.getAppointmentDate().equals(appointmentDate))
-                 && (appointmentHour == appointment.getAppointmentHour())
-                 && (doctorId.equals(appointment.getDoctorId()))
-                 || (appointmentHour < openingHour || appointmentHour > closingHour - 1)
-             ) {
+             boolean slotOccupied =
+                     (appointment.getAppointmentDate().equals(appointmentDate))
+                     && (appointmentHour == appointment.getAppointmentHour())
+                     && (doctorId.equals(appointment.getDoctorId()));
+
+             if (slotOccupied) {
                  throw new RuntimeException("Selected slot is not available.");
              }
          }
