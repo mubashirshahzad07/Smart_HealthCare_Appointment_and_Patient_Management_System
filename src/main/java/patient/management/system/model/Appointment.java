@@ -24,18 +24,16 @@ public class Appointment {
     public enum Status {
         SCHEDULED,
         RESCHEDULED,
-        CANCELLED,
         COMPLETED,
         IN_PROGRESS
     }
 
     public Appointment() {}
 
-    // check if there is any other appointment where appointmentDate and appointmentTime is equal to the current appointment for the same doctor id
-    // if so throw an exception that appointment slot is already occupied
-    public Appointment(int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,String patientId,
-                       String doctorId, String receptionistId, String patientDescription, Status status, Type type, boolean willingToReschedule
-                      ) {
+    public Appointment(
+            int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,String patientId,
+            String doctorId, String receptionistId, String patientDescription, Status status, Type type, boolean willingToReschedule
+    ) {
 
         this.appointmentId = IdDao.getAppointmentId();
         this.appointmentDate = String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay);
@@ -81,15 +79,31 @@ public class Appointment {
         return status.toString();
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
     public String getType() {
         return type.toString();
     }
 
     public boolean getWillingToReschedule() {
         return willingToReschedule;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public void setAppointmentDate(String appointmentDate) {
+        this.appointmentDate = appointmentDate;
+    }
+
+    public void setAppointmentHour(int appointmentHour) {
+        this.appointmentHour = appointmentHour;
+    }
+
+    public void setWillingToReschedule(boolean willingToReschedule) {
+        this.willingToReschedule = willingToReschedule;
+    }
+
+    public void setReceptionistId(String receptionistId) {
+        this.receptionistId = receptionistId;
     }
 }

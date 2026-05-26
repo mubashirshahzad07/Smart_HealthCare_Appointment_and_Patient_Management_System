@@ -17,10 +17,12 @@ public class PatientDAO {
     /**
      * @throws RuntimeException if email format is invalid [email format: .....@gmail.com]
      */
-    public void addPatient(String name, String gender, int age, String email) {
-        Patient newPatient = new Patient(name, gender, age, email);
+    public void addPatient(String name, String gender, int age, String email, String cnic) {
 
         ArrayList<Patient> patients = getPatientsInternal();
+        duplicatePatientRegistration(cnic, patients);
+
+        Patient newPatient = new Patient(name, gender, age, email, cnic);
         patients.add(newPatient);
 
         try {
@@ -28,6 +30,14 @@ public class PatientDAO {
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to register patient.");
+        }
+    }
+
+    private void duplicatePatientRegistration(String cnic, ArrayList<Patient> patients) {
+        for (Patient patient : patients) {
+            if (cnic.equals(patient.getCnic())) {
+                throw new RuntimeException("Patient with the same CNIC is already registered.");
+            }
         }
     }
 

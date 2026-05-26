@@ -2,6 +2,7 @@ package patient.management.system.service;
 
 import patient.management.system.dao.AppointmentDAO;
 import patient.management.system.dto.AppointmentDTO;
+import patient.management.system.dto.DoctorAvailabilityDTO;
 import patient.management.system.model.Appointment;
 
 import java.util.List;
@@ -27,17 +28,34 @@ public class AppointmentService {
         }
     }
 
-    public void updateAppointmentStatus() {
+    public List<AppointmentDTO> getAppointments() {
         try {
-            appointmentDAO.updateAppointmentStatus();
+            return appointmentDAO.getAppointments();
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public List<AppointmentDTO> getAppointments() {
+
+    public void rescheduleAppointment(
+            String appointmentId, int appointmentYear, int appointmentMonth,
+            int appointmentDay, int appointmentHour, String doctorId,
+            String receptionistId, boolean willingToReschedule
+    ) {
         try {
-            return appointmentDAO.getAppointments();
+            appointmentDAO.rescheduleAppointment(
+                    appointmentId, appointmentYear, appointmentMonth,
+                    appointmentDay, appointmentHour, doctorId,
+                    receptionistId, willingToReschedule
+            );
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<DoctorAvailabilityDTO> getAvailableDoctors(String appointmentDate) {
+        try {
+            return appointmentDAO.getAvailableDoctors(appointmentDate);
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

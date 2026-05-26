@@ -14,23 +14,23 @@ public class DoctorDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final File file = new File("data/doctors.json");
 
-    public static void main(String[] args) {
-        new DoctorDAO().addDoctor("username", "password", "name", "department", 2345);
-    }
-
-    public void addDoctor(String username, String password, String doctorName, String department, double appointmentFee) {
+    public void addDoctor(
+            String username, String password, String doctorName, String department,
+            double appointmentFee, Doctor.Specialization specialization
+    ) {
 
         ArrayList<Doctor> doctors = getDoctorsInternal();
 
         usernameAvailable(doctors, username);
 
-        Doctor newDoctor = new Doctor(username, password, doctorName, department, appointmentFee);
+        Doctor newDoctor = new Doctor(username, password, doctorName, department, appointmentFee, specialization);
+
         doctors.add(newDoctor);
 
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(file, doctors);
-
         } catch (IOException e) {
+
             throw new RuntimeException("Unable to register doctor.");
         }
     }
@@ -38,6 +38,7 @@ public class DoctorDAO {
     private ArrayList<Doctor> getDoctorsInternal() {
 
         try {
+
             if (!file.exists() || file.length() == 0) {
                 return new ArrayList<>();
             }
@@ -55,7 +56,7 @@ public class DoctorDAO {
     private void usernameAvailable(List<Doctor> doctors, String username) {
         for (Doctor doctor : doctors) {
             if (username.equals(doctor.getUsername())) {
-                throw new RuntimeException("Username already taken.");
+                throw new RuntimeException("Username not available.");
             }
         }
     }
@@ -63,6 +64,7 @@ public class DoctorDAO {
     public List<DoctorDTO> getDoctors() {
 
         try {
+
             if (!file.exists() || file.length() == 0) {
                 return new ArrayList<>();
             }

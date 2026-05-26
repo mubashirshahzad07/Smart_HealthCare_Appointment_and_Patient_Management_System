@@ -6,6 +6,7 @@ public class DoctorDTO {
     private String name;
     private String doctorId;
     private String department;
+    private String specialization;
     private double appointmentFee;
 
     public DoctorDTO() {}
@@ -24,6 +25,10 @@ public class DoctorDTO {
 
     public String getDoctorId() {
         return doctorId;
+    }
+
+    public String getSpecialization() {
+        return specialization;
     }
 
     public String getDepartment() {

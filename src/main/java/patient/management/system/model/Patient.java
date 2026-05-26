@@ -10,17 +10,19 @@ public class Patient {
     private String name;
     private int age;
     private String email;
+    private String cnic;
 
     public Patient() {}
 
     /**
      * @throws RuntimeException if email format is invalid [email format: ....@gmail.com]
      */
-    public Patient(String name, String gender, int age, String email) {
+    public Patient(String name, String gender, int age, String email, String cnic) {
         this.patientId = IdDao.getPatientId();
         this.gender = gender;
         this.age = age;
         this.name = name;
+        this.cnic = cnic;
 
         if (EmailService.isValidEmail(email)) {
             this.email = email;
@@ -47,5 +49,9 @@ public class Patient {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getCnic() {
+        return cnic;
     }
 }
