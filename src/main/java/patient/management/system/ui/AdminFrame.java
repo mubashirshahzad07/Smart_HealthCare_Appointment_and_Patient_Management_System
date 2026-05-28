@@ -1,6 +1,6 @@
-package pms.ui;
+package patient.management.system.ui;
 
-import pms.model.User;
+import patient.management.system.model.User;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;

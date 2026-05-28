@@ -1,4 +1,4 @@
-package pms.ui;
+package patient.management.system.ui;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;

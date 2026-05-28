@@ -1,4 +1,4 @@
-package pms.ui;
+package patient.management.system.ui;
 
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
