@@ -274,6 +274,8 @@ public class AppointmentDAO {
 
         ArrayList<Appointment> appointments = getAppointmentsInternal();
         ArrayList<Appointment> cancelledAppointments = getCancelledAppointmentsInternal();
+        double refund = doctorDAO.getDoctorAppointmentFee(doctorId) * 0.75;
+
         Appointment targetAppointment = null;
 
         for (Appointment appointment : appointments) {
@@ -309,6 +311,8 @@ public class AppointmentDAO {
         } catch (IOException e) {
             throw new RuntimeException("Unable to cancel appointment.");
         }
+
+        setTotalFeesCollected(-refund);
     }
 
     /**
