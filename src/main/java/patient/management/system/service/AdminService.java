@@ -112,6 +112,18 @@ public class AdminService {
         }
     }
 
+    public int getTotalBookedAppointments() {
+        return appointmentDAO.getAppointments().size() + getTotalCancelledAppointments(); 
+    }
+
+    public int getTotalCancelledAppointments() {
+        return getCancelledAppointments().size();
+    }
+
+    public int getTotalRescheduledAppointments() {
+        return getRescheduledAppointments().size();
+    }
+
     public double getTotalFeesCollected() {
         try {
             return appointmentDAO.getTotalFeesCollected();
