@@ -34,8 +34,11 @@ public class AppointmentDAO {
         patientDAO.patientRegistered(patientId);
 
         ArrayList<Appointment> appointments = getAppointmentsInternal();
-        slotAvailable(appointments, String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
-                appointmentHour, doctorId); // throws an exception so handle it in service layer
+        slotAvailable(
+            appointments, 
+            String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
+            appointmentHour, doctorId
+        ); // throws an exception so handle it in service layer
 
         Appointment newAppointment = 
                                 new Appointment(
