@@ -2,8 +2,6 @@ package patient.management.system.model;
 
 import patient.management.system.dao.IdDao;
 
-import java.time.LocalDate;
-
 public class Appointment {
     private String appointmentId;
     private String appointmentDate;
@@ -13,13 +11,7 @@ public class Appointment {
     private String receptionistId;
     private String patientDescription;
     private Status status;
-    private Type type;
     private boolean willingToReschedule;
-
-    public enum Type {
-        REGULAR,
-        EMERGENCY
-    }
 
     public enum Status {
         SCHEDULED,
@@ -32,7 +24,7 @@ public class Appointment {
 
     public Appointment(
             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,String patientId,
-            String doctorId, String receptionistId, String patientDescription, Status status, Type type, boolean willingToReschedule
+            String doctorId, String receptionistId, String patientDescription, Status status, boolean willingToReschedule
     ) {
 
         this.appointmentId = IdDao.getAppointmentId();
@@ -43,7 +35,6 @@ public class Appointment {
         this.receptionistId = receptionistId;
         this.patientDescription = patientDescription;
         this.status = status;
-        this.type = type;
         this.willingToReschedule = willingToReschedule;
     }
 
@@ -77,10 +68,6 @@ public class Appointment {
 
     public String getStatus() {
         return status.toString();
-    }
-
-    public String getType() {
-        return type.toString();
     }
 
     public boolean getWillingToReschedule() {

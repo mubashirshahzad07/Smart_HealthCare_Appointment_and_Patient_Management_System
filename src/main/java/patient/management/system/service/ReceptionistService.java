@@ -1,48 +1,71 @@
 package patient.management.system.service;
 
-import patient.management.system.dao.ReceptionistDAO;
-import patient.management.system.dto.ReceptionistDTO;
+import patient.management.system.dao.*;
+import patient.management.system.dto.*;
+import patient.management.system.model.*;
 
 import java.util.List;
 
 public class ReceptionistService {
-    ReceptionistDAO receptionistDAO = new ReceptionistDAO();
+    AppointmentDAO appointmentDAO = new AppointmentDAO();
 
-    /**
-     * @param id receptionist ID or user ID
-     */
-    public void activateReceptionist(String id) {
+    public void addAppointment(
+            int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
+            String patientId, String doctorId, String receptionistId, String patientDescription,
+            Appointment.Status status, boolean willingToReschedule
+    ) {
+
         try {
-            receptionistDAO.activateReceptionist(id);
+
+            appointmentDAO.addAppointment(
+                    appointmentYear, appointmentMonth, appointmentDay, appointmentHour, patientId, doctorId,
+                    receptionistId, patientDescription, status, willingToReschedule
+            );
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<AppointmentDTO> getAppointments() {
+        try {
+            return appointmentDAO.getAppointments();
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    /**
-     * @param id receptionist ID or user ID
-     */
-    public void inactivateReceptionist(String id) {
+    public void cancelAppointment(String appointmentId, String doctorId) {
         try {
-            receptionistDAO.inactivateReceptionist(id);
+            appointmentDAO.cancelAppointment(appointmentId, doctorId);
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public List<ReceptionistDTO> getActiveReceptionists() {
+    public void rescheduleAppointment(
+            String appointmentId, int appointmentYear, int appointmentMonth,
+            int appointmentDay, int appointmentHour, String doctorId,
+            String receptionistId, boolean willingToReschedule
+    ) {
+
         try {
-            return receptionistDAO.getActiveReceptionists();
+            appointmentDAO.rescheduleAppointment(
+                    appointmentId, appointmentYear, appointmentMonth,
+                    appointmentDay, appointmentHour, doctorId,
+                    receptionistId, willingToReschedule
+            );
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public List<ReceptionistDTO> getInactiveReceptionists() {
+    public List<DoctorAvailabilityDTO> getAvailableDoctors(String appointmentDate) {
         try {
-            return receptionistDAO.getInactiveReceptionists();
+            return appointmentDAO.getAvailableDoctors(appointmentDate);
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
+
 }

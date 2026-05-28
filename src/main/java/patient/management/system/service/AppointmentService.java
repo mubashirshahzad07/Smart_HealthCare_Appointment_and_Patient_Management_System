@@ -13,14 +13,14 @@ public class AppointmentService {
     public void addAppointment(
             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
             String patientId, String doctorId, String receptionistId, String patientDescription,
-            Appointment.Status status, Appointment.Type type, boolean willingToReschedule
+            Appointment.Status status, boolean willingToReschedule
     ) {
 
         try {
 
             appointmentDAO.addAppointment(
                     appointmentYear, appointmentMonth, appointmentDay, appointmentHour, patientId, doctorId,
-                    receptionistId, patientDescription, status, type, willingToReschedule
+                    receptionistId, patientDescription, status, willingToReschedule
             );
 
         } catch (Exception e) {
@@ -36,12 +36,20 @@ public class AppointmentService {
         }
     }
 
+    public void cancelAppointment(String appointmentId, String doctorId) {
+        try {
+            appointmentDAO.cancelAppointment(appointmentId, doctorId);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 
     public void rescheduleAppointment(
             String appointmentId, int appointmentYear, int appointmentMonth,
             int appointmentDay, int appointmentHour, String doctorId,
             String receptionistId, boolean willingToReschedule
     ) {
+
         try {
             appointmentDAO.rescheduleAppointment(
                     appointmentId, appointmentYear, appointmentMonth,
