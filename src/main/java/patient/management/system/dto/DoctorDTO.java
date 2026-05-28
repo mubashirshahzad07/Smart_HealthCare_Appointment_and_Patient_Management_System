@@ -5,9 +5,9 @@ public class DoctorDTO {
     private String username;
     private String name;
     private String doctorId;
-    private String department;
     private String specialization;
     private double appointmentFee;
+    private boolean isActive;
 
     public DoctorDTO() {}
 
@@ -31,8 +31,8 @@ public class DoctorDTO {
         return specialization;
     }
 
-    public String getDepartment() {
-        return department;
+    public boolean getIsActive() {
+        return isActive;
     }
 
     public double getAppointmentFee() {

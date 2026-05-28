@@ -249,7 +249,7 @@
          DoctorDAO doctorDAO = new DoctorDAO();
          DoctorScheduleDAO scheduleDAO = new DoctorScheduleDAO();
 
-         List<DoctorDTO> doctors = doctorDAO.getDoctors();
+         List<DoctorDTO> doctors = doctorDAO.getActiveDoctors();
          List<DoctorSchedule> schedules = scheduleDAO.getSchedules();
          ArrayList<Appointment> appointments = getAppointmentsInternal();
 

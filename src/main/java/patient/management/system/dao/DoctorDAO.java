@@ -14,16 +14,19 @@ public class DoctorDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final File file = new File("data/doctors.json");
 
+    public void main(String[] args) {
+        // new DoctorDAO().addDoctor("username", "password", "doctor name", 500,
+        // Doctor.Specialization.GENERAL_PHYSICIAN);
+    }
+
     public void addDoctor(
-            String username, String password, String doctorName, String department,
-            double appointmentFee, Doctor.Specialization specialization
-    ) {
+            String username, String password, String doctorName,
+            double appointmentFee, Doctor.Specialization specialization) {
 
-        ArrayList<Doctor> doctors = getDoctorsInternal();
-
+        ArrayList<Doctor> doctors = getAllDoctors();
         usernameAvailable(doctors, username);
 
-        Doctor newDoctor = new Doctor(username, password, doctorName, department, appointmentFee, specialization);
+        Doctor newDoctor = new Doctor(username, password, doctorName, appointmentFee, specialization);
 
         doctors.add(newDoctor);
 
@@ -35,7 +38,32 @@ public class DoctorDAO {
         }
     }
 
-    private ArrayList<Doctor> getDoctorsInternal() {
+    private ArrayList<Doctor> getActiveDoctorsInternal() {
+
+        try {
+
+            if (!file.exists() || file.length() == 0) {
+                return new ArrayList<>();
+            }
+
+            ArrayList<Doctor> doctors = mapper.readValue(
+                    file,
+                    new TypeReference<ArrayList<Doctor>>() {
+                    });
+
+            doctors.removeIf(doctor -> !doctor.getIsActive());
+
+            return doctors;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load doctors data.");
+        }
+    }
+
+    /**
+     * @return all the active and inactive doctors
+     */
+    private ArrayList<Doctor> getAllDoctors() {
 
         try {
 
@@ -45,8 +73,8 @@ public class DoctorDAO {
 
             return mapper.readValue(
                     file,
-                    new TypeReference<ArrayList<Doctor>>(){}
-            );
+                    new TypeReference<ArrayList<Doctor>>() {
+                    });
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load doctors data.");
@@ -61,7 +89,7 @@ public class DoctorDAO {
         }
     }
 
-    public List<DoctorDTO> getDoctors() {
+    public List<DoctorDTO> getActiveDoctors() {
 
         try {
 
@@ -69,13 +97,109 @@ public class DoctorDAO {
                 return new ArrayList<>();
             }
 
-            return mapper.readValue(
+            ArrayList<DoctorDTO> doctors = mapper.readValue(
                     file,
-                    new TypeReference<List<DoctorDTO>>(){}
-            );
+                    new TypeReference<ArrayList<DoctorDTO>>() {
+                    });
+
+            doctors.removeIf(doctor -> !doctor.getIsActive());
+
+            return doctors;
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load doctors data.");
         }
+    }
+
+    private ArrayList<Doctor> getInactiveDoctorsInternal() {
+
+        try {
+
+            if (!file.exists() || file.length() == 0) {
+                return new ArrayList<>();
+            }
+
+            ArrayList<Doctor> doctors = mapper.readValue(
+                    file,
+                    new TypeReference<ArrayList<Doctor>>() {
+                    });
+
+            doctors.removeIf(doctor -> doctor.getIsActive());
+
+            return doctors;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load doctors data.");
+        }
+    }
+
+    public List<DoctorDTO> getInactiveDoctors() {
+
+        try {
+
+            if (!file.exists() || file.length() == 0) {
+                return new ArrayList<>();
+            }
+
+            ArrayList<DoctorDTO> doctors = mapper.readValue(
+                    file,
+                    new TypeReference<ArrayList<DoctorDTO>>() {
+                    });
+
+            doctors.removeIf(doctor -> doctor.getIsActive());
+
+            return doctors;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load doctors data.");
+        }
+    }
+
+    /**
+     * @param id doctorId or userId
+     */
+    public void activateDoctor(String id) {
+        ArrayList<Doctor> inactiveDoctors = getInactiveDoctorsInternal();
+
+        for (Doctor activeDoctor : inactiveDoctors) {
+            if (activeDoctor.getDoctorId().equals(id) || activeDoctor.getUserId().equals(id)) {
+
+                activeDoctor.setIsActive(true);
+
+                try {
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, inactiveDoctors);
+                } catch (IOException e) {
+                    throw new RuntimeException("Unable to activate doctor.");
+                }
+
+                return;
+            }
+        }
+
+        throw new RuntimeException("Doctor is unregistered or active.");
+    }
+
+    /**
+     * @param id doctorId or userId
+     */
+    public void inactivateDoctor(String id) {
+        ArrayList<Doctor> activeDoctors = getActiveDoctorsInternal();
+
+        for (Doctor activeDoctor : activeDoctors) {
+            if (activeDoctor.getDoctorId().equals(id) || activeDoctor.getUserId().equals(id)) {
+
+                activeDoctor.setIsActive(false);
+
+                try {
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, activeDoctors);
+                } catch (IOException e) {
+                    throw new RuntimeException("Unable to inactivate doctor.");
+                }
+
+                return;
+            }
+        }
+
+        throw new RuntimeException("Doctor is unregistered or inactive.");
     }
 }

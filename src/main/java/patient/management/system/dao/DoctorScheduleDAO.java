@@ -80,7 +80,7 @@ public class DoctorScheduleDAO {
     private void doctorRegistered(String doctorId) {
 
         DoctorDAO doctorDAO = new DoctorDAO();
-        List<DoctorDTO> doctors = doctorDAO.getDoctors();
+        List<DoctorDTO> doctors = doctorDAO.getActiveDoctors();
 
         for (DoctorDTO doctor : doctors) {
 

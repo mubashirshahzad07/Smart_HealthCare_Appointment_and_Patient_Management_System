@@ -6,6 +6,7 @@ public class ReceptionistDTO {
     private String name;
     private String receptionistId;
     private String shift;
+    private boolean isActive;
 
     public ReceptionistDTO() {}
 
@@ -27,5 +28,9 @@ public class ReceptionistDTO {
 
     public String getShift() {
         return shift;
+    }
+
+    public boolean getIsActive() {
+        return isActive;
     }
 }

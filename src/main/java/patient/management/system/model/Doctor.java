@@ -8,9 +8,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Doctor extends User {
     private String doctorId;
     private String name;
-    private String department;
     private double appointmentFee;
     private Specialization specialization;
+    private boolean isActive;
 
     public enum Specialization {
         GENERAL_PHYSICIAN,
@@ -26,13 +26,13 @@ public class Doctor extends User {
 
     public Doctor() {}
 
-    public Doctor(String username, String password, String name, String department, double appointmentFee, Specialization specialization) {
+    public Doctor(String username, String password, String name, double appointmentFee, Specialization specialization) {
         super(username, name, password, Role.DOCTOR);
         this.doctorId = IdDao.getDoctorId();
         this.name = name;
-        this.department = department;
         this.appointmentFee = appointmentFee;
         this.specialization = specialization;
+        this.isActive = true;
     }
 
     public String getSpecialization() {
@@ -43,15 +43,19 @@ public class Doctor extends User {
         return doctorId;
     }
 
-    public String getDepartment() {
-        return department;
-    }
-
     public String getName() {
         return name;
     }
 
     public double getAppointmentFee() {
         return appointmentFee;
+    }
+
+    public boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
     }
 }
