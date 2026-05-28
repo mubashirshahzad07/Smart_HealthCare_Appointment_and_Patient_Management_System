@@ -18,7 +18,7 @@ public class IdDao {
     }
 
     public static String getDoctorId() {
-        return generateId("data/doctor_id.txt", "DOCT-");
+        return generateId("data/doctor_id.txt", "DR-");
     }
 
     public static String getAppointmentId() {
@@ -26,7 +26,7 @@ public class IdDao {
     }
 
     public static String getReceptionistId() {
-        return generateId("data/receptionist_id", "RECEP-");
+        return generateId("data/receptionist_id", "RP-");
     }
 
     public static String generateId(String filePath, String idPrefix) {
