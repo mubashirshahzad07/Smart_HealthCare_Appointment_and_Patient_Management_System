@@ -33,7 +33,6 @@ public class DoctorDAO {
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(file, doctors);
         } catch (IOException e) {
-
             throw new RuntimeException("Unable to register doctor.");
         }
     }
@@ -201,5 +200,17 @@ public class DoctorDAO {
         }
 
         throw new RuntimeException("Doctor is unregistered or inactive.");
+    }
+
+    public double getDoctorAppointmentFee(String doctorId) {
+        ArrayList<Doctor> doctors = getActiveDoctorsInternal();
+
+        for (Doctor doctor : doctors) {
+            if (doctorId.equals(doctor.getDoctorId())) {
+                return doctor.getAppointmentFee();
+            }
+        }
+
+        return 0;
     }
 }

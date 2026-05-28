@@ -1,310 +1,478 @@
- package patient.management.system.dao;
+package patient.management.system.dao;
 
- import patient.management.system.dto.AppointmentDTO;
+import patient.management.system.dto.AppointmentDTO;
 
- import com.fasterxml.jackson.core.type.TypeReference;
- import com.fasterxml.jackson.databind.ObjectMapper;
- import patient.management.system.dto.DoctorAvailabilityDTO;
- import patient.management.system.dto.DoctorDTO;
- import patient.management.system.model.Appointment;
- import patient.management.system.model.DoctorSchedule;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import patient.management.system.dto.DoctorAvailabilityDTO;
+import patient.management.system.dto.DoctorDTO;
+import patient.management.system.model.Appointment;
+import patient.management.system.model.DoctorSchedule;
 
- import java.io.File;
- import java.io.IOException;
- import java.time.LocalDate;
- import java.time.LocalDateTime;
- import java.util.ArrayList;
- import java.util.List;
+import java.io.File;
+import java.nio.file.*;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
- public class AppointmentDAO {
-     private final ObjectMapper mapper = new ObjectMapper();
-     private final File file = new File("data/appointments.json");
+public class AppointmentDAO {
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final DoctorDAO doctorDAO = new DoctorDAO();
+    private final File appointmentsFile = new File("data/appointments.json");
+    private final File cancelledAppointmentsFile = new File("data/cancelled_appointments.json");
+    private final File rescheduledAppointmentsFile = new File("data/rescheduled_appointments.json");
+    private final String totalFeesFilePath = "data/total_fees.json";
 
-     public void addAppointment(
-             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
-             String patientId, String doctorId, String receptionistId, String patientDescription,
-             Appointment.Status status, Appointment.Type type, boolean willingToReschedule
-     ) {
+    public void addAppointment(
+            int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
+            String patientId, String doctorId, String receptionistId, String patientDescription,
+            Appointment.Status status, boolean willingToReschedule) {
 
-         PatientDAO patientDAO = new PatientDAO();
-         patientDAO.patientRegistered(patientId);
+        PatientDAO patientDAO = new PatientDAO();
+        patientDAO.patientRegistered(patientId);
 
-         ArrayList<Appointment> appointments = getAppointmentsInternal();
-         slotAvailable(appointments, String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay), appointmentHour, doctorId, type); // throws an exception so handle it in service layer
+        ArrayList<Appointment> appointments = getAppointmentsInternal();
+        slotAvailable(appointments, String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
+                appointmentHour, doctorId); // throws an exception so handle it in service layer
 
-         Appointment newAppointment = new Appointment(appointmentYear, appointmentMonth, appointmentDay, appointmentHour,
-                 patientId, doctorId, receptionistId, patientDescription, status, type, willingToReschedule
-         );
-         appointments.add(newAppointment);
+        Appointment newAppointment = 
+                                new Appointment(
+                                    appointmentYear, appointmentMonth, 
+                                    appointmentDay, appointmentHour,
+                                    patientId, doctorId, receptionistId, 
+                                    patientDescription, status, willingToReschedule
+                                );
 
-         try {
-             mapper.writerWithDefaultPrettyPrinter().writeValue(file, appointments);
+        appointments.add(newAppointment);
 
-         } catch (IOException e) {
-             throw new RuntimeException("Unable to register appointment.");
-         }
-     }
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(appointmentsFile, appointments);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to register appointment.");
+        }
 
-     private ArrayList<Appointment> getAppointmentsInternal() {
-         updateAppointmentStatus();
+        setTotalFeesCollected(doctorDAO.getDoctorAppointmentFee(doctorId));
+    }
 
-         try {
-             if (!file.exists() || file.length() == 0) {
-                 return new ArrayList<>();
-             }
+    private void setTotalFeesCollected(double appiontmentFee) {
+        double newTotalFeeCollected = getTotalFeesCollected() + appiontmentFee;
 
-             return mapper.readValue(
-                     file,
-                     new TypeReference<ArrayList<Appointment>>(){}
-             );
+        Path path = Path.of(totalFeesFilePath);
+        try {
+            if (!Files.exists(path) && !(path.getParent() == null)) {
+                Files.createDirectories(path.getParent());
+            }
 
-         } catch (IOException e) {
-             throw new RuntimeException("Unable to load appointments data.");
-         }
-     }
+            Files.writeString(path, String.format("%f", newTotalFeeCollected));
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to update total fee collected.");
+        }
+    }
 
-     /**
-      * checks if the selected slot is available and within working hours (for regular appointments)
-      */
-     private void slotAvailable(ArrayList<Appointment> appointments, String appointmentDate, int appointmentHour, String doctorId, Appointment.Type type) {
-         final int OPENING_HOUR = 9;
-         final int CLOSING_HOUR = 21;
+    public double getTotalFeesCollected() {
+        Path path = Path.of(totalFeesFilePath);
 
-         boolean appointmentHourOutOfRange = (appointmentHour < OPENING_HOUR || appointmentHour >= CLOSING_HOUR) && (type == Appointment.Type.REGULAR);
+        try {
+            if ((!Files.exists(path)) && !(path.getParent() == null)) {
+                Files.createDirectories(path.getParent());
+                Files.writeString(path, "0");
+            }
 
-         if (appointmentHourOutOfRange) {
-             throw new RuntimeException("Unable to book slot.\nHospital timing: " + OPENING_HOUR + " - " + CLOSING_HOUR);
-         }
+            String totalFeeRead = Files.readString(path).trim();
 
-         for (Appointment appointment : appointments) {
-             boolean slotOccupied =
-                     (appointment.getAppointmentDate().equals(appointmentDate))
-                     && (appointmentHour == appointment.getAppointmentHour())
-                     && (appointment.getType().equals(type.toString()))
-                     && (doctorId.equals(appointment.getDoctorId()));
+            if (totalFeeRead.isEmpty()) {
+                totalFeeRead = "0";
+            }
 
-             if (slotOccupied) {
-                 throw new RuntimeException("Selected slot is not available.");
-             }
-         }
-     }
+            
+            double totalFeeCollected = Double.parseDouble(totalFeeRead);
+            Files.writeString(path, String.format("%f", totalFeeRead));
 
+            return totalFeeCollected;
 
-     /**
-      * updates the status of appointments
-      */
-     private void updateAppointmentStatus() {
-         ArrayList<Appointment> appointments = new AppointmentDAO().getAppointmentsInternal();
-         final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load total fee collected.");
+        }
 
-         for (Appointment appointment : appointments) {
+    }
 
-             LocalDateTime appointmentStart = LocalDate.parse(appointment.getAppointmentDate()).atTime(appointment.getAppointmentHour(), 0);
-             LocalDateTime appointmentEnd = appointmentStart.plusHours(1);
+    private ArrayList<Appointment> getAppointmentsInternal() {
+        updateAppointmentStatus();
+
+        try {
+            if (!appointmentsFile.exists() || appointmentsFile.length() == 0) {
+                return new ArrayList<>();
+            }
+
+            return mapper.readValue(
+                    appointmentsFile,
+                    new TypeReference<ArrayList<Appointment>>() {
+                    });
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load appointments data.");
+        }
+    }
+
+    /**
+     * checks if the selected slot is available and within working hours
+     */
+    private void slotAvailable(ArrayList<Appointment> appointments, String appointmentDate, int appointmentHour,
+            String doctorId) {
+        final int OPENING_HOUR = 9;
+        final int CLOSING_HOUR = 21;
+
+        boolean appointmentHourOutOfRange = (appointmentHour < OPENING_HOUR || appointmentHour >= CLOSING_HOUR);
+
+        if (appointmentHourOutOfRange) {
+            throw new RuntimeException("Unable to book slot.\nHospital timing: " + OPENING_HOUR + " - " + CLOSING_HOUR);
+        }
+
+        for (Appointment appointment : appointments) {
+            boolean slotOccupied = (appointment.getAppointmentDate().equals(appointmentDate))
+                    && (appointmentHour == appointment.getAppointmentHour())
+                    && (doctorId.equals(appointment.getDoctorId()));
+
+            if (slotOccupied) {
+                throw new RuntimeException("Selected slot is not available.");
+            }
+        }
+    }
+
+    /**
+     * updates the status of appointments
+     */
+    private void updateAppointmentStatus() {
+        ArrayList<Appointment> appointments = new AppointmentDAO().getAppointmentsInternal();
+        final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
+
+        for (Appointment appointment : appointments) {
+
+            LocalDateTime appointmentStart = LocalDate.parse(appointment.getAppointmentDate())
+                    .atTime(appointment.getAppointmentHour(), 0);
+            LocalDateTime appointmentEnd = appointmentStart.plusHours(1);
 
             boolean isCompleted = !CURRENT_DATE_TIME.isBefore(appointmentEnd);
-             boolean isInProgress = !CURRENT_DATE_TIME.isBefore(appointmentStart) && CURRENT_DATE_TIME.isBefore(appointmentEnd);
+            boolean isInProgress = !CURRENT_DATE_TIME.isBefore(appointmentStart)
+                    && CURRENT_DATE_TIME.isBefore(appointmentEnd);
 
-             if (isCompleted) {
-                 appointment.setStatus(Appointment.Status.COMPLETED);
-             } else if (isInProgress) {
-                 appointment.setStatus(Appointment.Status.IN_PROGRESS);
-             }
-         }
+            if (isCompleted) {
+                appointment.setStatus(Appointment.Status.COMPLETED);
+            } else if (isInProgress) {
+                appointment.setStatus(Appointment.Status.IN_PROGRESS);
+            }
+        }
 
-         try {
-             mapper.writerWithDefaultPrettyPrinter().writeValue(file, appointments);
-         } catch (IOException e) {
-             throw new RuntimeException("Unable to update appointments.");
-         }
-     }
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(appointmentsFile, appointments);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to update appointments.");
+        }
+    }
 
-     public List<AppointmentDTO> getAppointments() {
-         updateAppointmentStatus();
+    public List<AppointmentDTO> getAppointments() {
+        updateAppointmentStatus();
 
-         try {
-             if (!file.exists() || file.length() == 0) {
-                 return new ArrayList<>();
-             }
+        try {
+            if (!appointmentsFile.exists() || appointmentsFile.length() == 0) {
+                return new ArrayList<>();
+            }
 
-             return mapper.readValue(
-                     file,
-                     new TypeReference<List<AppointmentDTO>>(){}
-             );
+            return mapper.readValue(
+                    appointmentsFile,
+                    new TypeReference<List<AppointmentDTO>>() {
+                    });
 
-         } catch (IOException e) {
-             throw new RuntimeException("Unable to load appointments data.");
-         }
-     }
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load appointments data.");
+        }
+    }
 
-     /**
-      * reschedule the target appointment and following appointments willing to reschedule
-      */
-     public void rescheduleAppointment(
-             String appointmentId, int appointmentYear, int appointmentMonth,
-             int appointmentDay, int appointmentHour, String doctorId,
-             String receptionistId, boolean willingToReschedule
-     ) {
+    private ArrayList<Appointment> getRescheduledAppointmentsInternal() {
 
-         ArrayList<Appointment> appointments = getAppointmentsInternal();
-         Appointment targetAppointment = null;
+        try {
+            if (!rescheduledAppointmentsFile.exists() || rescheduledAppointmentsFile.length() == 0) {
+                return new ArrayList<>();
+            }
 
-         for (Appointment appointment : appointments) {
+            return mapper.readValue(
+                    rescheduledAppointmentsFile,
+                    new TypeReference<ArrayList<Appointment>>() {
+                    });
 
-             if (appointment.getAppointmentId().equals(appointmentId)) {
-                 targetAppointment = appointment;
-                 break;
-             }
-         }
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load rescheduled appointments data.");
+        }
+           
+    }
 
-         if (targetAppointment == null) {
-             throw new RuntimeException("Appointment not found.");
-         }
+    public List<AppointmentDTO> getRescheduledAppointments() {
 
-         boolean reschedulable =
-                 targetAppointment.getStatus().equals(Appointment.Status.SCHEDULED.toString())
-                 || targetAppointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
+        try {
+            if (!rescheduledAppointmentsFile.exists() || rescheduledAppointmentsFile.length() == 0) {
+                return new ArrayList<>();
+            }
 
-         if (!reschedulable) {
-             throw new RuntimeException("Appointment cannot be rescheduled.");
-         }
+            return mapper.readValue(
+                    rescheduledAppointmentsFile,
+                    new TypeReference<List<AppointmentDTO>>() {
+                    });
 
-         String vacantDate = targetAppointment.getAppointmentDate();
-         int vacantHour = targetAppointment.getAppointmentHour();
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load rescheduled appointments data.");
+        }
+           
+    }
 
-         slotAvailable(
-                 appointments,
-                 String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
-                 appointmentHour, doctorId, Appointment.Type.REGULAR
-         );
 
-         targetAppointment.setAppointmentDate(String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay));
-         targetAppointment.setAppointmentHour(appointmentHour);
-         targetAppointment.setStatus(Appointment.Status.RESCHEDULED);
-         targetAppointment.setWillingToReschedule(willingToReschedule);
-         targetAppointment.setReceptionistId(receptionistId);
+    private ArrayList<Appointment> getCancelledAppointmentsInternal() {
 
-         rescheduleFollowingAppointments(appointments, vacantDate, vacantHour, doctorId);
+        try {
+            if (!cancelledAppointmentsFile.exists() || cancelledAppointmentsFile.length() == 0) {
+                return new ArrayList<>();
+            }
 
-         try {
-             mapper.writerWithDefaultPrettyPrinter().writeValue(file, appointments);
-         } catch (IOException e) {
-             throw new RuntimeException("Unable to reschedule appointment.");
-         }
-     }
+            return mapper.readValue(
+                    cancelledAppointmentsFile,
+                    new TypeReference<ArrayList<Appointment>>() {
+                    });
 
-     private void rescheduleFollowingAppointments(ArrayList<Appointment> appointments, String vacantDate, int vacantHour, String doctorId) {
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load cancelled appointments data.");
+        }
+           
+    }
 
-         while (true) {
-             Appointment closestAppointment = null;
-             LocalDateTime closestTime = null;
-             LocalDateTime vacantDateTime = LocalDate.parse(vacantDate).atTime(vacantHour, 0);
+    public List<AppointmentDTO> getCancelledAppointments() {
 
-             for (Appointment appointment : appointments) {
+        try {
+            if (!cancelledAppointmentsFile.exists() || cancelledAppointmentsFile.length() == 0) {
+                return new ArrayList<>();
+            }
 
-                 boolean sameDoctor = appointment.getDoctorId().equals(doctorId);
-                 boolean isWilling = appointment.getWillingToReschedule();
+            return mapper.readValue(
+                    cancelledAppointmentsFile,
+                    new TypeReference<List<AppointmentDTO>>() {
+                    });
 
-                 boolean validStatus =
-                         appointment.getStatus().equals(Appointment.Status.SCHEDULED.toString())
-                         || appointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load cancelled appointments data.");
+        }
+           
+    }
 
-                 LocalDateTime appointmentDateTime =
-                         LocalDate.parse(appointment.getAppointmentDate()).
-                         atTime(appointment.getAppointmentHour(), 0);
+    /**
+     * cancel the target appointment and following appointments willing to
+     * reschedule are rescheduled
+     */
+    public void cancelAppointment(String appointmentId, String doctorId) {
 
-                 boolean afterVacancy = appointmentDateTime.isAfter(vacantDateTime);
+        ArrayList<Appointment> appointments = getAppointmentsInternal();
+        ArrayList<Appointment> cancelledAppointments = getCancelledAppointmentsInternal();
+        Appointment targetAppointment = null;
 
-                 if (sameDoctor && isWilling && validStatus && afterVacancy) {
+        for (Appointment appointment : appointments) {
 
-                     if (closestAppointment == null || appointmentDateTime.isBefore(closestTime)) {
+            if (appointment.getAppointmentId().equals(appointmentId)) {
+                targetAppointment = appointment;
+                break;
+            }
+        }
 
-                         closestAppointment = appointment;
-                         closestTime = appointmentDateTime;
-                     }
-                 }
-             }
+        if (targetAppointment == null) {
+            throw new RuntimeException("Appointment not found.");
+        }
 
-             if (closestAppointment == null) {
-                 break;
-             }
+        boolean cancellable = targetAppointment.getStatus().equals(Appointment.Status.SCHEDULED.toString())
+                || targetAppointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
 
-             String nextVacantDate = closestAppointment.getAppointmentDate();
-             int nextVacantHour = closestAppointment.getAppointmentHour();
+        if (!cancellable) {
+            throw new RuntimeException("Appointment cannot be cancelled.");
+        }
 
-             closestAppointment.setAppointmentDate(vacantDate);
-             closestAppointment.setAppointmentHour(vacantHour);
-             closestAppointment.setStatus(Appointment.Status.RESCHEDULED);
+        String vacantDate = targetAppointment.getAppointmentDate();
+        int vacantHour = targetAppointment.getAppointmentHour();
 
-             vacantDate = nextVacantDate;
-             vacantHour = nextVacantHour;
-         }
-     }
+        cancelledAppointments.add(targetAppointment);
+        appointments.remove(targetAppointment);
 
-     public List<DoctorAvailabilityDTO> getAvailableDoctors(String appointmentDate) {
+        rescheduleFollowingAppointments(appointments, vacantDate, vacantHour, doctorId);
 
-         LocalDate parsedDate = LocalDate.parse(appointmentDate);
-         DoctorSchedule.Day day = DoctorSchedule.Day.valueOf(parsedDate.getDayOfWeek().name());
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(appointmentsFile, appointments);
+            mapper.writerWithDefaultPrettyPrinter().writeValue(cancelledAppointmentsFile, cancelledAppointments);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to cancel appointment.");
+        }
+    }
 
-         DoctorDAO doctorDAO = new DoctorDAO();
-         DoctorScheduleDAO scheduleDAO = new DoctorScheduleDAO();
+    /**
+     * reschedule the target appointment and following appointments willing to
+     * reschedule are rescheduled
+     */
+    public void rescheduleAppointment(
+            String appointmentId, int appointmentYear, int appointmentMonth,
+            int appointmentDay, int appointmentHour, String doctorId,
+            String receptionistId, boolean willingToReschedule) {
 
-         List<DoctorDTO> doctors = doctorDAO.getActiveDoctors();
-         List<DoctorSchedule> schedules = scheduleDAO.getSchedules();
-         ArrayList<Appointment> appointments = getAppointmentsInternal();
+        ArrayList<Appointment> appointments = getAppointmentsInternal();
+        ArrayList<Appointment> rescheduledAppointments = getRescheduledAppointmentsInternal();
 
-         ArrayList<DoctorAvailabilityDTO> result = new ArrayList<>();
+        Appointment targetAppointment = null;
 
-         for (DoctorDTO doctor : doctors) {
+        for (Appointment appointment : appointments) {
 
-             ArrayList<Integer> freeSlots =
-                     new ArrayList<>();
+            if (appointment.getAppointmentId().equals(appointmentId)) {
+                targetAppointment = appointment;
+                rescheduledAppointments.add(targetAppointment);
+                break;
+            }
+        }
 
-             for (DoctorSchedule schedule : schedules) {
+        if (targetAppointment == null) {
+            throw new RuntimeException("Appointment not found.");
+        }
 
-                 boolean sameDoctor = schedule.getDoctorId().equals(doctor.getDoctorId());
-                 boolean sameDay = (schedule.getDay() == day);
+        boolean reschedulable = targetAppointment.getStatus().equals(Appointment.Status.SCHEDULED.toString())
+                || targetAppointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
 
-                 if (sameDoctor && sameDay) {
+        if (!reschedulable) {
+            throw new RuntimeException("Appointment cannot be rescheduled.");
+        }
 
-                     if (schedule.getShift() == DoctorSchedule.Shift.MORNING) {
+        String vacantDate = targetAppointment.getAppointmentDate();
+        int vacantHour = targetAppointment.getAppointmentHour();
 
-                         for (int hour = 9; hour < 15; hour++) {
-                             freeSlots.add(hour);
-                         }
-                     } else if (schedule.getShift() == DoctorSchedule.Shift.EVENING) {
+        slotAvailable(
+                appointments,
+                String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
+                appointmentHour, doctorId);
 
-                         for (int hour = 15; hour < 21; hour++) {
+        targetAppointment.setAppointmentDate(String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay));
+        targetAppointment.setAppointmentHour(appointmentHour);
+        targetAppointment.setStatus(Appointment.Status.RESCHEDULED);
+        targetAppointment.setWillingToReschedule(willingToReschedule);
+        targetAppointment.setReceptionistId(receptionistId);
 
-                             freeSlots.add(hour);
-                         }
-                     }
-                 }
-             }
+        rescheduleFollowingAppointments(appointments, vacantDate, vacantHour, doctorId);
 
-             for (Appointment appointment : appointments) {
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(appointmentsFile, appointments);
+            mapper.writerWithDefaultPrettyPrinter().writeValue(rescheduledAppointmentsFile, rescheduledAppointments);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to reschedule appointment.");
+        }
+    }
 
-                 boolean appointmentMatches =
-                         appointment.getDoctorId().equals(doctor.getDoctorId())
-                         && appointment.getAppointmentDate().equals(appointmentDate);
+    private void rescheduleFollowingAppointments(ArrayList<Appointment> appointments, String vacantDate, int vacantHour,
+            String doctorId) {
 
-                 if (appointmentMatches) {
+        while (true) {
+            Appointment closestAppointment = null;
+            LocalDateTime closestTime = null;
+            LocalDateTime vacantDateTime = LocalDate.parse(vacantDate).atTime(vacantHour, 0);
 
-                     freeSlots.remove(appointment.getAppointmentHour());
-                 }
-             }
+            for (Appointment appointment : appointments) {
 
-             result.add(
-                     new DoctorAvailabilityDTO(
-                             doctor.getDoctorId(),
-                             doctor.getName(),
-                             doctor.getSpecialization(),
-                             doctor.getAppointmentFee(),
-                             freeSlots
-                     )
-             );
-         }
+                boolean sameDoctor = appointment.getDoctorId().equals(doctorId);
+                boolean isWilling = appointment.getWillingToReschedule();
 
-         return result;
-     }
- }
+                boolean validStatus = appointment.getStatus().equals(Appointment.Status.SCHEDULED.toString())
+                        || appointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
+
+                LocalDateTime appointmentDateTime = LocalDate.parse(appointment.getAppointmentDate())
+                        .atTime(appointment.getAppointmentHour(), 0);
+
+                boolean afterVacancy = appointmentDateTime.isAfter(vacantDateTime);
+
+                if (sameDoctor && isWilling && validStatus && afterVacancy) {
+
+                    if (closestAppointment == null || appointmentDateTime.isBefore(closestTime)) {
+
+                        closestAppointment = appointment;
+                        closestTime = appointmentDateTime;
+                    }
+                }
+            }
+
+            if (closestAppointment == null) {
+                break;
+            }
+
+            String nextVacantDate = closestAppointment.getAppointmentDate();
+            int nextVacantHour = closestAppointment.getAppointmentHour();
+
+            closestAppointment.setAppointmentDate(vacantDate);
+            closestAppointment.setAppointmentHour(vacantHour);
+            closestAppointment.setStatus(Appointment.Status.RESCHEDULED);
+
+            vacantDate = nextVacantDate;
+            vacantHour = nextVacantHour;
+        }
+    }
+
+    public List<DoctorAvailabilityDTO> getAvailableDoctors(String appointmentDate) {
+
+        LocalDate parsedDate = LocalDate.parse(appointmentDate);
+        DoctorSchedule.Day day = DoctorSchedule.Day.valueOf(parsedDate.getDayOfWeek().name());
+
+        DoctorDAO doctorDAO = new DoctorDAO();
+        DoctorScheduleDAO scheduleDAO = new DoctorScheduleDAO();
+
+        List<DoctorDTO> doctors = doctorDAO.getActiveDoctors();
+        List<DoctorSchedule> schedules = scheduleDAO.getSchedules();
+        ArrayList<Appointment> appointments = getAppointmentsInternal();
+
+        ArrayList<DoctorAvailabilityDTO> result = new ArrayList<>();
+
+        for (DoctorDTO doctor : doctors) {
+
+            ArrayList<Integer> freeSlots = new ArrayList<>();
+
+            for (DoctorSchedule schedule : schedules) {
+
+                boolean sameDoctor = schedule.getDoctorId().equals(doctor.getDoctorId());
+                boolean sameDay = (schedule.getDay() == day);
+
+                if (sameDoctor && sameDay) {
+
+                    if (schedule.getShift() == DoctorSchedule.Shift.MORNING) {
+
+                        for (int hour = 9; hour < 15; hour++) {
+                            freeSlots.add(hour);
+                        }
+                    } else if (schedule.getShift() == DoctorSchedule.Shift.EVENING) {
+
+                        for (int hour = 15; hour < 21; hour++) {
+
+                            freeSlots.add(hour);
+                        }
+                    }
+                }
+            }
+
+            for (Appointment appointment : appointments) {
+
+                boolean appointmentMatches = appointment.getDoctorId().equals(doctor.getDoctorId())
+                        && appointment.getAppointmentDate().equals(appointmentDate);
+
+                if (appointmentMatches) {
+
+                    freeSlots.remove(appointment.getAppointmentHour());
+                }
+            }
+
+            result.add(
+                    new DoctorAvailabilityDTO(
+                            doctor.getDoctorId(),
+                            doctor.getName(),
+                            doctor.getSpecialization(),
+                            doctor.getAppointmentFee(),
+                            freeSlots));
+        }
+
+        return result;
+    }
+}
