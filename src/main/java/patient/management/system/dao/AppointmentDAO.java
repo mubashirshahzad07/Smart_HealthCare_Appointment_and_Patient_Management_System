@@ -23,7 +23,9 @@ public class AppointmentDAO {
     private final File appointmentsFile = new File("data/appointments.json");
     private final File cancelledAppointmentsFile = new File("data/cancelled_appointments.json");
     private final File rescheduledAppointmentsFile = new File("data/rescheduled_appointments.json");
+    private final String netFeesFilePath = "data/net_fees.json";
     private final String totalFeesFilePath = "data/total_fees.json";
+    private final String totalRefundsFilePath = "data/total_refunds.json";
 
     public void addAppointment(
             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
@@ -35,18 +37,15 @@ public class AppointmentDAO {
 
         ArrayList<Appointment> appointments = getAppointmentsInternal();
         slotAvailable(
-            appointments, 
-            String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
-            appointmentHour, doctorId
-        ); // throws an exception so handle it in service layer
+                appointments,
+                String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
+                appointmentHour, doctorId);
 
-        Appointment newAppointment = 
-                                new Appointment(
-                                    appointmentYear, appointmentMonth, 
-                                    appointmentDay, appointmentHour,
-                                    patientId, doctorId, receptionistId, 
-                                    patientDescription, status, willingToReschedule
-                                );
+        Appointment newAppointment = new Appointment(
+                appointmentYear, appointmentMonth,
+                appointmentDay, appointmentHour,
+                patientId, doctorId, receptionistId,
+                patientDescription, status, willingToReschedule);
 
         appointments.add(newAppointment);
 
@@ -56,11 +55,53 @@ public class AppointmentDAO {
             throw new RuntimeException("Unable to register appointment.");
         }
 
+        setNetAmountCollected(doctorDAO.getDoctorAppointmentFee(doctorId));
         setTotalFeesCollected(doctorDAO.getDoctorAppointmentFee(doctorId));
     }
 
-    private void setTotalFeesCollected(double appiontmentFee) {
-        double newTotalFeeCollected = getTotalFeesCollected() + appiontmentFee;
+    private void setNetAmountCollected(double appointmentFee) {
+        double newNetFeeCollected = getNetFeesCollected() + appointmentFee;
+
+        Path path = Path.of(netFeesFilePath);
+        try {
+            if (!Files.exists(path) && !(path.getParent() == null)) {
+                Files.createDirectories(path.getParent());
+            }
+
+            Files.writeString(path, String.format("%f", newNetFeeCollected));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to update net fee collected.");
+        }
+    }
+
+    public double getNetFeesCollected() {
+        Path path = Path.of(netFeesFilePath);
+
+        try {
+            if ((!Files.exists(path)) && !(path.getParent() == null)) {
+                Files.createDirectories(path.getParent());
+                Files.writeString(path, "0");
+            }
+
+            String netFeeRead = Files.readString(path).trim();
+
+            if (netFeeRead.isEmpty()) {
+                netFeeRead = "0";
+            }
+
+            double netFeeCollected = Double.parseDouble(netFeeRead);
+            Files.writeString(path, String.format("%f", netFeeRead));
+
+            return netFeeCollected;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load net fee collected.");
+        }
+
+    }
+
+    public void setTotalFeesCollected(double appointmentFee) {
+        double newTotalFeeCollected = getTotalFeesCollected() + appointmentFee;
 
         Path path = Path.of(totalFeesFilePath);
         try {
@@ -69,7 +110,7 @@ public class AppointmentDAO {
             }
 
             Files.writeString(path, String.format("%f", newTotalFeeCollected));
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Failed to update total fee collected.");
         }
     }
@@ -89,7 +130,6 @@ public class AppointmentDAO {
                 totalFeeRead = "0";
             }
 
-            
             double totalFeeCollected = Double.parseDouble(totalFeeRead);
             Files.writeString(path, String.format("%f", totalFeeRead));
 
@@ -97,6 +137,47 @@ public class AppointmentDAO {
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load total fee collected.");
+        }
+
+    }
+
+    public void incrementTotalRefundsCount() {
+        int newTotalRefunds = getTotalRefundsCount() + 1;
+
+        Path path = Path.of(totalFeesFilePath);
+        try {
+            if (!Files.exists(path) && !(path.getParent() == null)) {
+                Files.createDirectories(path.getParent());
+            }
+
+            Files.writeString(path, String.format("%d", newTotalRefunds));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to update total refunds.");
+        }
+    }
+
+    public int getTotalRefundsCount() {
+        Path path = Path.of(totalRefundsFilePath);
+
+        try {
+            if ((!Files.exists(path)) && !(path.getParent() == null)) {
+                Files.createDirectories(path.getParent());
+                Files.writeString(path, "0");
+            }
+
+            String totalRefundsRead = Files.readString(path).trim();
+
+            if (totalRefundsRead.isEmpty()) {
+                totalRefundsRead = "0";
+            }
+
+            int totalRefunds = Integer.parseInt(totalRefundsRead);
+            Files.writeString(path, String.format("%d", totalRefundsRead));
+
+            return totalRefunds;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load total refunds.");
         }
 
     }
@@ -208,7 +289,7 @@ public class AppointmentDAO {
         } catch (IOException e) {
             throw new RuntimeException("Unable to load rescheduled appointments data.");
         }
-           
+
     }
 
     public List<AppointmentDTO> getRescheduledAppointments() {
@@ -226,9 +307,8 @@ public class AppointmentDAO {
         } catch (IOException e) {
             throw new RuntimeException("Unable to load rescheduled appointments data.");
         }
-           
-    }
 
+    }
 
     private ArrayList<Appointment> getCancelledAppointmentsInternal() {
 
@@ -245,7 +325,7 @@ public class AppointmentDAO {
         } catch (IOException e) {
             throw new RuntimeException("Unable to load cancelled appointments data.");
         }
-           
+
     }
 
     public List<AppointmentDTO> getCancelledAppointments() {
@@ -263,7 +343,7 @@ public class AppointmentDAO {
         } catch (IOException e) {
             throw new RuntimeException("Unable to load cancelled appointments data.");
         }
-           
+
     }
 
     /**
@@ -312,17 +392,17 @@ public class AppointmentDAO {
             throw new RuntimeException("Unable to cancel appointment.");
         }
 
-        setTotalFeesCollected(-refund);
+        setNetAmountCollected(-refund);
     }
 
     /**
-     * reschedule the target appointment and following appointments willing to
+     * Reschedule the target appointment and following appointments willing to
      * reschedule are rescheduled
      */
     public void rescheduleAppointment(
             String appointmentId, int appointmentYear, int appointmentMonth,
             int appointmentDay, int appointmentHour, String doctorId,
-            String receptionistId, boolean willingToReschedule) {
+            boolean willingToReschedule) {
 
         ArrayList<Appointment> appointments = getAppointmentsInternal();
         ArrayList<Appointment> rescheduledAppointments = getRescheduledAppointmentsInternal();
@@ -357,11 +437,11 @@ public class AppointmentDAO {
                 String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
                 appointmentHour, doctorId);
 
-        targetAppointment.setAppointmentDate(String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay));
+        targetAppointment
+                .setAppointmentDate(String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay));
         targetAppointment.setAppointmentHour(appointmentHour);
         targetAppointment.setStatus(Appointment.Status.RESCHEDULED);
         targetAppointment.setWillingToReschedule(willingToReschedule);
-        targetAppointment.setReceptionistId(receptionistId);
 
         rescheduleFollowingAppointments(appointments, vacantDate, vacantHour, doctorId);
 
@@ -467,7 +547,7 @@ public class AppointmentDAO {
 
                 if (appointmentMatches) {
 
-                    freeSlots.remove(appointment.getAppointmentHour());
+                    freeSlots.remove(Integer.valueOf(appointment.getAppointmentHour()));
                 }
             }
 
@@ -481,5 +561,84 @@ public class AppointmentDAO {
         }
 
         return result;
+    }
+
+    public ArrayList<String> getDoctorAvailableSlotsThisWeek(String doctorId) {
+
+        ArrayList<Appointment> appointments = getAppointmentsInternal();
+        DoctorScheduleDAO scheduleDAO = new DoctorScheduleDAO();
+        List<DoctorSchedule> schedules = scheduleDAO.getSchedules();
+        ArrayList<String> availableSlots = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+
+        for (int i = 0; i < 7; i++) {
+
+            LocalDate currentDate = today.plusDays(i);
+            DoctorSchedule.Day currentDay = DoctorSchedule.Day.valueOf(currentDate.getDayOfWeek().name());
+            ArrayList<Integer> freeSlots = new ArrayList<>();
+
+            for (DoctorSchedule schedule : schedules) {
+
+                boolean sameDoctor = schedule.getDoctorId().equals(doctorId);
+                boolean sameDay = (schedule.getDay() == currentDay);
+
+                if (sameDoctor && sameDay) {
+
+                    if (schedule.getShift() == DoctorSchedule.Shift.MORNING) {
+
+                        for (int hour = 9; hour < 15; hour++) {
+                            freeSlots.add(hour);
+                        }
+
+                    } else if (schedule.getShift() == DoctorSchedule.Shift.EVENING) {
+
+                        for (int hour = 15; hour < 21; hour++) {
+                            freeSlots.add(hour);
+                        }
+                    }
+                }
+            }
+
+            String formattedDate = currentDate.toString();
+
+            for (Appointment appointment : appointments) {
+
+                boolean appointmentMatches = 
+                        appointment.getDoctorId().equals(doctorId)
+                        && appointment.getAppointmentDate().equals(formattedDate);
+
+                if (appointmentMatches) {
+                    freeSlots.remove(Integer.valueOf(appointment.getAppointmentHour()));
+                }
+            }
+
+            for (Integer hour : freeSlots) {
+                availableSlots.add(currentDay + ", " + formattedDate + " - " + String.format("%02d", hour) + ":00");
+            }
+        }
+
+        return availableSlots;
+    }
+
+    public int getTodayAppointmentsCount() {
+
+        String today = LocalDate.now().toString();
+
+        return (int) getAppointmentsInternal()
+                .stream()
+                .filter(appointment -> appointment.getAppointmentDate().equals(today))
+                .count();
+    }
+
+    public int getUpcomingAppointmentsCount() {
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        return (int) getAppointmentsInternal()
+                .stream()
+                .filter(appointment -> LocalDate.parse(appointment.getAppointmentDate())
+                        .atTime(appointment.getAppointmentHour(), 0)
+                        .isAfter(currentDateTime))
+                .count();
     }
 }

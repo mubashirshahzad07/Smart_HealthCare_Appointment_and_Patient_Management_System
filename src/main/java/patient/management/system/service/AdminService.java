@@ -12,7 +12,8 @@ public class AdminService {
     private final ReceptionistDAO receptionistDAO = new ReceptionistDAO();
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
 
-    public void addDoctor(String username, String password, String doctorName, double appointmentFee, Doctor.Specialization specialization) {
+    public void addDoctor(String username, String password, String doctorName, double appointmentFee,
+            Doctor.Specialization specialization) {
         try {
             doctorDAO.addDoctor(username, password, doctorName, appointmentFee, specialization);
         } catch (RuntimeException e) {
@@ -113,7 +114,7 @@ public class AdminService {
     }
 
     public int getTotalBookedAppointments() {
-        return appointmentDAO.getAppointments().size() + getTotalCancelledAppointments(); 
+        return appointmentDAO.getAppointments().size() + getTotalCancelledAppointments();
     }
 
     public int getTotalCancelledAppointments() {
@@ -124,9 +125,25 @@ public class AdminService {
         return getRescheduledAppointments().size();
     }
 
+    public double getNetAmount() {
+        try {
+            return appointmentDAO.getNetFeesCollected();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
     public double getTotalFeesCollected() {
         try {
             return appointmentDAO.getTotalFeesCollected();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public int getTotalRefundsCount() {
+        try {
+            return appointmentDAO.getTotalRefundsCount();
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

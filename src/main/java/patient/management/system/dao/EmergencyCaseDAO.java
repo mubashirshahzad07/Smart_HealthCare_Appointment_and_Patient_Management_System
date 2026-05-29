@@ -253,4 +253,11 @@ public class EmergencyCaseDAO {
 
         linkTemporaryPatient(emergencyId, patientId);
     }
+
+    public int getTemporaryLinksCount() {
+        return (int) getEmergencyCases()
+                .stream()
+                .filter(emergencyCase -> emergencyCase.getIsTemporaryPatient())
+                .count();
+    }
 }

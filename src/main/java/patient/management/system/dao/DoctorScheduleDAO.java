@@ -68,8 +68,8 @@ public class DoctorScheduleDAO {
 
             return mapper.readValue(
                     file,
-                    new TypeReference<ArrayList<DoctorSchedule>>(){}
-            );
+                    new TypeReference<ArrayList<DoctorSchedule>>() {
+                    });
 
         } catch (IOException e) {
 
@@ -95,13 +95,11 @@ public class DoctorScheduleDAO {
 
     private void duplicateSchedule(
             List<DoctorSchedule> schedules, String doctorId,
-            DoctorSchedule.Day day, DoctorSchedule.Shift shift
-    ) {
+            DoctorSchedule.Day day, DoctorSchedule.Shift shift) {
 
         for (DoctorSchedule schedule : schedules) {
 
-            boolean duplicate =
-                    schedule.getDoctorId().equals(doctorId)
+            boolean duplicate = schedule.getDoctorId().equals(doctorId)
                     && schedule.getDay() == day
                     && schedule.getShift() == shift;
 

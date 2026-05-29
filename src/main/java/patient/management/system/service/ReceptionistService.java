@@ -10,6 +10,7 @@ public class ReceptionistService {
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
     private final PatientDAO patientDAO = new PatientDAO();
     private final EmergencyCaseDAO emergencyCaseDAO = new EmergencyCaseDAO();
+    private final DoctorDAO doctorDAO = new DoctorDAO();
 
     public void addAppointment(
             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
@@ -47,24 +48,16 @@ public class ReceptionistService {
 
     public void rescheduleAppointment(
             String appointmentId, int appointmentYear, int appointmentMonth,
-            int appointmentDay, int appointmentHour, String doctorId,
-            String receptionistId, boolean willingToReschedule
+            int appointmentDay, int appointmentHour, 
+            String doctorId, boolean willingToReschedule
     ) {
 
         try {
             appointmentDAO.rescheduleAppointment(
                     appointmentId, appointmentYear, appointmentMonth,
                     appointmentDay, appointmentHour, doctorId,
-                    receptionistId, willingToReschedule
+                    willingToReschedule
             );
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    public List<DoctorAvailabilityDTO> getAvailableDoctors(String appointmentDate) {
-        try {
-            return appointmentDAO.getAvailableDoctors(appointmentDate);
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -141,5 +134,38 @@ public class ReceptionistService {
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+
+    public List<String> getDoctorAvailableSlotsThisWeek(String doctorId) {
+        try {
+            return appointmentDAO.getDoctorAvailableSlotsThisWeek(doctorId);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<DoctorDTO> getActiveDoctors() {
+        try {
+            return doctorDAO.getActiveDoctors();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public int getTodayAppointmentsCount() {
+        return appointmentDAO.getTodayAppointmentsCount();
+    }
+
+    public int getUpcomingAppointmentsCount() {
+        return appointmentDAO.getUpcomingAppointmentsCount();
+    }
+
+    public int getTotalEmergencyCasesCount() {
+        return emergencyCaseDAO.getEmergencyCases().size();
+    }
+
+    public int getTemporaryLinksCount() {
+        return emergencyCaseDAO.getTemporaryLinksCount();
     }
 }
