@@ -7,7 +7,9 @@ import patient.management.system.model.*;
 import java.util.List;
 
 public class ReceptionistService {
-    AppointmentDAO appointmentDAO = new AppointmentDAO();
+    private final AppointmentDAO appointmentDAO = new AppointmentDAO();
+    private final PatientDAO patientDAO = new PatientDAO();
+    private final EmergencyCaseDAO emergencyCaseDAO = new EmergencyCaseDAO();
 
     public void addAppointment(
             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
@@ -68,4 +70,76 @@ public class ReceptionistService {
         }
     }
 
+    public void addPatient(String name, String gender, int age, String email, String cnic) {
+        try {
+            patientDAO.addPatient(name, gender, age, email, cnic);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<PatientDTO> getPatients() {
+        try {
+            return patientDAO.getPatients();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public void registerEmergencyCase(
+            String patientId,
+            boolean isTemporaryPatient,
+            String patientName,
+            int age,
+            String gender,
+            String cnic,
+            String initialComplaint,
+            TriageColor triageColor,
+            String triageRemark) {
+
+        try {
+            emergencyCaseDAO.addEmergencyCase(
+                    patientId,
+                    isTemporaryPatient,
+                    patientName,
+                    age,
+                    gender,
+                    cnic,
+                    initialComplaint,
+                    triageColor,
+                    triageRemark);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<EmergencyCaseDTO> getEmergencyCases(String triageColor) {
+        try {
+            return emergencyCaseDAO.getCasesByTriageColor(triageColor);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * @param emergencyId temp id or emergency case id
+     */
+    public void linkTemporaryPatient(String emergencyId, String patientId) {
+        try {
+            emergencyCaseDAO.linkTemporaryPatient(emergencyId, patientId);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * @param emergencyId temp id or emergency case id
+     */
+    public void registerAndLinkTemporaryPatient(String emergencyId, String patientName, int age, String gender, String phoneNumber, String cnic, String email) {
+        try {
+            emergencyCaseDAO.registerAndLinkTemporaryPatient(emergencyId, patientName, age, gender, phoneNumber, cnic, email);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 }

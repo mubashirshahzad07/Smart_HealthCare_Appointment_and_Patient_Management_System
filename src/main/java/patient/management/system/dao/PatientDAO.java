@@ -17,7 +17,7 @@ public class PatientDAO {
     /**
      * @throws RuntimeException if email format is invalid [email format: .....@gmail.com]
      */
-    public void addPatient(String name, String gender, int age, String email, String cnic) {
+    public Patient addPatient(String name, String gender, int age, String email, String cnic) {
 
         ArrayList<Patient> patients = getPatientsInternal();
         duplicatePatientRegistration(cnic, patients);
@@ -27,7 +27,7 @@ public class PatientDAO {
 
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(file, patients);
-
+            return newPatient;
         } catch (IOException e) {
             throw new RuntimeException("Unable to register patient.");
         }

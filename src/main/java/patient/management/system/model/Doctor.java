@@ -1,6 +1,6 @@
 package patient.management.system.model;
 
-import patient.management.system.dao.IdDao;
+import patient.management.system.dao.IdDAO;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -28,7 +28,7 @@ public class Doctor extends User {
 
     public Doctor(String username, String password, String name, double appointmentFee, Specialization specialization) {
         super(username, name, password, Role.DOCTOR);
-        this.doctorId = IdDao.getDoctorId();
+        this.doctorId = IdDAO.getDoctorId();
         this.name = name;
         this.appointmentFee = appointmentFee;
         this.specialization = specialization;

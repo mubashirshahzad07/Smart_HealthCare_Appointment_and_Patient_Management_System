@@ -1,7 +1,6 @@
 package patient.management.system.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import patient.management.system.dao.IdDao;
+import patient.management.system.dao.IdDAO;
 import patient.management.system.service.EmailService;
 
 public class Patient {
@@ -18,7 +17,7 @@ public class Patient {
      * @throws RuntimeException if email format is invalid [email format: ....@gmail.com]
      */
     public Patient(String name, String gender, int age, String email, String cnic) {
-        this.patientId = IdDao.getPatientId();
+        this.patientId = IdDAO.getPatientId();
         this.gender = gender;
         this.age = age;
         this.name = name;

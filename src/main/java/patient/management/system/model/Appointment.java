@@ -1,6 +1,6 @@
 package patient.management.system.model;
 
-import patient.management.system.dao.IdDao;
+import patient.management.system.dao.IdDAO;
 
 public class Appointment {
     private String appointmentId;
@@ -27,7 +27,7 @@ public class Appointment {
             String doctorId, String receptionistId, String patientDescription, Status status, boolean willingToReschedule
     ) {
 
-        this.appointmentId = IdDao.getAppointmentId();
+        this.appointmentId = IdDAO.getAppointmentId();
         this.appointmentDate = String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay);
         this.appointmentHour = appointmentHour;
         this.patientId = patientId;

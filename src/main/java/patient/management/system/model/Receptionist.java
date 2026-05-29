@@ -1,7 +1,7 @@
 package patient.management.system.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import patient.management.system.dao.IdDao;
+import patient.management.system.dao.IdDAO;
 
 @JsonIgnoreProperties({ "password", "role" })
 public class Receptionist extends User {
@@ -22,7 +22,7 @@ public class Receptionist extends User {
     public Receptionist(String username, String password, String name, Shift shift) {
         super(username, name, password, Role.RECEPTIONIST);
         this.shift = shift;
-        this.receptionistId = IdDao.getReceptionistId();
+        this.receptionistId = IdDAO.getReceptionistId();
         this.isActive = true;
     }
 
