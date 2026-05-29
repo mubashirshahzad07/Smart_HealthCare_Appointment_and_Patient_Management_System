@@ -17,6 +17,12 @@ public class MedicalRecord {
     private String notes;
     private TriageColor triageColor;
     private LocalDateTime recordDateTime;
+    private Record_Status recordStatus;
+
+    public enum Record_Status {
+        PENDING, 
+        COMPLETED
+    }
 
     public enum RecordType {
         REGULAR,
@@ -36,7 +42,8 @@ public class MedicalRecord {
             String prescription,
             String notes,
             TriageColor triageColor,
-            LocalDateTime recordDateTime
+            LocalDateTime recordDateTime,
+            Record_Status recordStatus
         ) {
 
         this.medicalRecordId = medicalRecordId;
@@ -52,6 +59,7 @@ public class MedicalRecord {
         this.notes = notes;
         this.triageColor = triageColor;
         this.recordDateTime = recordDateTime;
+        this.recordStatus = recordStatus;
     }
 
     public String getMedicalRecordId() {
@@ -150,11 +158,19 @@ public class MedicalRecord {
         this.triageColor = triageColor;
     }
 
-    public LocalDateTime getRecordDateTime() {
-        return recordDateTime;
+    public String getRecordDateTime() {
+        return recordDateTime.toString();
     }
 
     public void setRecordDateTime(LocalDateTime recordDateTime) {
         this.recordDateTime = recordDateTime;
+    }
+
+    public Record_Status getRecordStatus() {
+        return recordStatus;
+    }
+
+    public void setRecordStatus(Record_Status recordStatus) {
+        this.recordStatus = recordStatus;
     }
 }

@@ -70,6 +70,7 @@ public class EmergencyCaseDAO {
         }
 
         if (triageColor == TriageColor.BLACK) {
+
             new MedicalRecordDAO().addEmergencyMedicalRecord(
                     emergencyCase.getEmergencyCaseId(),
                     patientId,
@@ -80,6 +81,19 @@ public class EmergencyCaseDAO {
                     "None",
                     triageRemark,
                     triageColor);
+        } else {
+
+            new MedicalRecordDAO().addEmergencyMedicalRecord(
+                    emergencyCase.getEmergencyCaseId(),
+                    patientId,
+                    temporaryPatientId,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    triageColor);
+
         }
     }
 
@@ -209,19 +223,14 @@ public class EmergencyCaseDAO {
             if (emergencyCase.getEmergencyCaseId().equals(emergencyId) || emergencyCase.getTemporaryPatientId().equals(emergencyId)) {
                 emergencyCase.setPatientId(patientId);
                 emergencyCase.setIsTemporaryPatient(false);
-                emergencyCase.setTemporaryPatientId(null);
 
                 try {
                     mapper.writerWithDefaultPrettyPrinter().writeValue(emergencyCasesFile, emergencyCases);
-
                 } catch (IOException e) {
                     throw new RuntimeException("Unable to link patient.");
                 }
 
-                new MedicalRecordDAO()
-                        .updateTemporaryPatientLink(
-                                emergencyCase.getTemporaryPatientId(),
-                                patientId);
+                new MedicalRecordDAO().updateTemporaryPatientLink(emergencyCase.getTemporaryPatientId(),patientId);
 
                 return;
             }

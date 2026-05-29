@@ -26,7 +26,7 @@ public class EmergencyTeamService {
         return emergencyCaseDAO.getActiveEmergencyCasesCount();
     }
 
-    public void createEmergencyMedicalRecord(
+    public void updateEmergencyMedicalRecord(
             String emergencyCaseId,
             String patientId,
             String temporaryPatientId,
@@ -44,7 +44,7 @@ public class EmergencyTeamService {
             throw new RuntimeException("Emergency case already completed.");
         }
 
-        medicalRecordDAO.addEmergencyMedicalRecord(
+        medicalRecordDAO.updateEmergencyMedicalRecord(
                 emergencyCaseId,
                 patientId,
                 temporaryPatientId,
@@ -52,8 +52,7 @@ public class EmergencyTeamService {
                 diagnosis,
                 treatmentGiven,
                 prescription,
-                notes,
-                triageColor);
+                notes);
 
         emergencyCaseDAO.completeEmergencyCase(emergencyCaseId, finalOutcome);
     }

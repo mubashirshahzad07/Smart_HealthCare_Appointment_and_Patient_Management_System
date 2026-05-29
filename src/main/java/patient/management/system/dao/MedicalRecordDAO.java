@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import patient.management.system.dto.MedicalRecordDTO;
 import patient.management.system.model.MedicalRecord;
 import patient.management.system.model.TriageColor;
+import patient.management.system.model.MedicalRecord.Record_Status;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +45,8 @@ public class MedicalRecordDAO {
                         prescription,
                         notes,
                         triageColor,
-                        LocalDateTime.now()
+                        LocalDateTime.now(),
+                        (triageColor == TriageColor.BLACK) ? Record_Status.COMPLETED : Record_Status.PENDING
                 );
 
         medicalRecords.add(medicalRecord);
@@ -55,6 +57,39 @@ public class MedicalRecordDAO {
             throw new RuntimeException("Unable to create medical record.");
         }
     }
+
+    public void updateEmergencyMedicalRecord(
+            String emergencyCaseId,
+            String patientId,
+            String temporaryPatientId,
+            String handledBy,
+            String diagnosis,
+            String treatmentGiven,
+            String prescription,
+            String notes
+    ) {
+
+        ArrayList<MedicalRecord> medicalRecords = getMedicalRecordsInternal();
+
+        for (MedicalRecord medicalRecord : medicalRecords) {
+            if (medicalRecord.getEmergencyCaseId().equals(emergencyCaseId)) {
+                medicalRecord.setHandledBy(handledBy);
+                medicalRecord.setDiagnosis(diagnosis);
+                medicalRecord.setTreatmentGiven(treatmentGiven);
+                medicalRecord.setPrescription(prescription);
+                medicalRecord.setNotes(notes);
+                medicalRecord.setRecordDateTime(LocalDateTime.now());
+                medicalRecord.setRecordStatus(Record_Status.COMPLETED);
+            }
+        }
+
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(medicalRecordsFile, medicalRecords);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to create medical record.");
+        }
+    }
+
 
     private ArrayList<MedicalRecord> getMedicalRecordsInternal() {
 
@@ -107,13 +142,11 @@ public class MedicalRecordDAO {
         for (MedicalRecord medicalRecord : medicalRecords) {
             if (temporaryPatientId.equals(medicalRecord.getTemporaryPatientId())) {
                 medicalRecord.setPatientId(patientId);
-                medicalRecord.setTemporaryPatientId(null);
             }
         }
 
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(medicalRecordsFile, medicalRecords);
-
         } catch (IOException e) {
             throw new RuntimeException("Unable to update linked patient.");
         }
