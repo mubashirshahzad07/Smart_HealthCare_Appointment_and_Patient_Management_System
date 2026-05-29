@@ -11,6 +11,8 @@ public class AppointmentDTO {
     private String status;
     private String type;
     private boolean willingToReschedule;
+    private String doctorName;
+    private String patientName;
 
     public AppointmentDTO() {}
 
@@ -52,5 +54,13 @@ public class AppointmentDTO {
 
     public boolean isWillingToReschedule() {
         return willingToReschedule;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public String getPatientName() {
+        return patientName;
     }
 }

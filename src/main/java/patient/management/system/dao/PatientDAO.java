@@ -88,4 +88,21 @@ public class PatientDAO {
             throw new RuntimeException("Unable to load patients data.");
         }
     }
+
+    public List<PatientDTO> searchPatient(String query) {
+        List<PatientDTO> patients = getPatients(); 
+        boolean isCNIC = query.matches("\\d{5}-\\d{7}-\\d");
+
+        return patients.stream()
+                .filter(patient -> {
+                    if (isCNIC) {
+                        return patient.getCnic().equals(query);
+                    } else {
+                        return patient.getName()
+                                .toLowerCase()
+                                .contains(query.toLowerCase());
+                    }
+                })
+                .toList();
+    }
 }

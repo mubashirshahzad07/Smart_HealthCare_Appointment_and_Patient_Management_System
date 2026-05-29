@@ -167,7 +167,7 @@ public class EmergencyCaseDAO {
         return count;
     }
 
-    public List<EmergencyCaseDTO> getTemporaryCases() {
+    public List<EmergencyCaseDTO> getTemporaryPatients() {
 
         List<EmergencyCaseDTO> cases = getEmergencyCases();
         cases.removeIf(emergencyCase -> !emergencyCase.getIsTemporaryPatient());
@@ -259,5 +259,22 @@ public class EmergencyCaseDAO {
                 .stream()
                 .filter(emergencyCase -> emergencyCase.getIsTemporaryPatient())
                 .count();
+    }
+
+    public List<EmergencyCaseDTO> searchTemporaryPatients(String query) {
+        String lowerQuery = query.toLowerCase();
+
+        return getTemporaryPatients()
+                .stream()
+                .filter(emergencyCase -> {
+
+                    boolean matchesName = emergencyCase.getPatientName() != null && emergencyCase.getPatientName().toLowerCase().contains(lowerQuery);
+                    boolean matchesCNIC = emergencyCase.getCnic() != null && emergencyCase.getCnic().toLowerCase().contains(lowerQuery);
+                    boolean matchesTempId = emergencyCase.getTemporaryPatientId() != null && emergencyCase.getTemporaryPatientId().toLowerCase().contains(lowerQuery);
+                    boolean matchesCaseId = emergencyCase.getEmergencyCaseId() != null && emergencyCase.getEmergencyCaseId().toLowerCase().contains(lowerQuery);
+
+                    return matchesName || matchesCNIC || matchesTempId || matchesCaseId;
+                })
+                .toList();
     }
 }

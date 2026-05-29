@@ -15,14 +15,14 @@ public class ReceptionistService {
     public void addAppointment(
             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
             String patientId, String doctorId, String receptionistId, String patientDescription,
-            Appointment.Status status, boolean willingToReschedule
+            Appointment.Status status, boolean willingToReschedule, String patientName, String doctorName
     ) {
 
         try {
 
             appointmentDAO.addAppointment(
                     appointmentYear, appointmentMonth, appointmentDay, appointmentHour, patientId, doctorId,
-                    receptionistId, patientDescription, status, willingToReschedule
+                    receptionistId, patientDescription, status, willingToReschedule, patientName, doctorName
             );
 
         } catch (Exception e) {
@@ -49,14 +49,15 @@ public class ReceptionistService {
     public void rescheduleAppointment(
             String appointmentId, int appointmentYear, int appointmentMonth,
             int appointmentDay, int appointmentHour, 
-            String doctorId, boolean willingToReschedule
+            String doctorId, boolean willingToReschedule,
+            String patientDescription, String doctorName
     ) {
 
         try {
             appointmentDAO.rescheduleAppointment(
                     appointmentId, appointmentYear, appointmentMonth,
                     appointmentDay, appointmentHour, doctorId,
-                    willingToReschedule
+                    willingToReschedule, patientDescription, doctorName
             );
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -167,5 +168,21 @@ public class ReceptionistService {
 
     public int getTemporaryLinksCount() {
         return emergencyCaseDAO.getTemporaryLinksCount();
+    }
+
+    public List<PatientDTO> searchPatient(String query) {
+        return patientDAO.searchPatient(query);
+    }
+
+    public List<AppointmentDTO> searchAppointments(String query) {
+        return appointmentDAO.searchAppointments(query);
+    }
+
+    public List<EmergencyCaseDTO> getTemporaryPatients() {
+        return emergencyCaseDAO.getTemporaryPatients();
+    }
+
+    public List<EmergencyCaseDTO> searchTemporaryPatients(String query) {
+        return emergencyCaseDAO.searchTemporaryPatients(query);
     }
 }

@@ -1,13 +1,13 @@
 package patient.management.system.dao;
 
 import patient.management.system.dto.AppointmentDTO;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import patient.management.system.dto.DoctorAvailabilityDTO;
 import patient.management.system.dto.DoctorDTO;
 import patient.management.system.model.Appointment;
 import patient.management.system.model.DoctorSchedule;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.nio.file.*;
@@ -30,7 +30,7 @@ public class AppointmentDAO {
     public void addAppointment(
             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
             String patientId, String doctorId, String receptionistId, String patientDescription,
-            Appointment.Status status, boolean willingToReschedule) {
+            Appointment.Status status, boolean willingToReschedule, String patientName, String doctorName) {
 
         PatientDAO patientDAO = new PatientDAO();
         patientDAO.patientRegistered(patientId);
@@ -45,7 +45,7 @@ public class AppointmentDAO {
                 appointmentYear, appointmentMonth,
                 appointmentDay, appointmentHour,
                 patientId, doctorId, receptionistId,
-                patientDescription, status, willingToReschedule);
+                patientDescription, status, willingToReschedule, doctorName, patientName);
 
         appointments.add(newAppointment);
 
@@ -402,7 +402,7 @@ public class AppointmentDAO {
     public void rescheduleAppointment(
             String appointmentId, int appointmentYear, int appointmentMonth,
             int appointmentDay, int appointmentHour, String doctorId,
-            boolean willingToReschedule) {
+            boolean willingToReschedule, String patientDescription, String doctorName) {
 
         ArrayList<Appointment> appointments = getAppointmentsInternal();
         ArrayList<Appointment> rescheduledAppointments = getRescheduledAppointmentsInternal();
@@ -437,11 +437,12 @@ public class AppointmentDAO {
                 String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
                 appointmentHour, doctorId);
 
-        targetAppointment
-                .setAppointmentDate(String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay));
+        targetAppointment.setAppointmentDate(String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay));
         targetAppointment.setAppointmentHour(appointmentHour);
         targetAppointment.setStatus(Appointment.Status.RESCHEDULED);
         targetAppointment.setWillingToReschedule(willingToReschedule);
+        targetAppointment.setDoctorName(doctorName);
+        targetAppointment.setPatientDescription(patientDescription);
 
         rescheduleFollowingAppointments(appointments, vacantDate, vacantHour, doctorId);
 
@@ -640,5 +641,23 @@ public class AppointmentDAO {
                         .atTime(appointment.getAppointmentHour(), 0)
                         .isAfter(currentDateTime))
                 .count();
+    }
+
+    public List<AppointmentDTO> searchAppointments(String query) {
+        List<Appointment> appointments = getAppointmentsInternal();
+        String lowerQuery = query.toLowerCase();
+
+        return appointments.stream()
+                .filter(appointment -> {
+                    boolean matchesAppointmentId = appointment.getAppointmentId() != null && appointment.getAppointmentId().toLowerCase().contains(lowerQuery);
+                    boolean matchesDoctor = appointment.getDoctorId() != null && appointment.getDoctorId().toLowerCase().contains(lowerQuery);
+                    boolean matchesPatient = appointment.getPatientId() != null && appointment.getPatientId().toLowerCase().contains(lowerQuery);
+                    boolean matchesDate = appointment.getAppointmentDate() != null && appointment.getAppointmentDate().contains(lowerQuery);
+                    boolean matchesDateTime = (String.format("%d",appointment.getAppointmentHour())).toLowerCase().contains(lowerQuery);
+
+                    return matchesAppointmentId || matchesDoctor || matchesPatient || matchesDate || matchesDateTime;
+                })
+                .map(appointment -> mapper.convertValue(appointment, AppointmentDTO.class))
+                .toList();
     }
 }

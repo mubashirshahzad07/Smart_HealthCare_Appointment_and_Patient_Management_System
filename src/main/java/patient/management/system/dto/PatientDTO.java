@@ -6,6 +6,7 @@ public class PatientDTO {
     private String gender;
     private int age;
     private String email;
+    private String cnic;
 
     public PatientDTO() {}
 
@@ -27,5 +28,9 @@ public class PatientDTO {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getCnic() {
+        return cnic;
     }
 }

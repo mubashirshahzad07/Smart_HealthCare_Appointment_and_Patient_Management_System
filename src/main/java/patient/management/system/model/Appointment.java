@@ -11,6 +11,8 @@ public class Appointment {
     private String receptionistId;
     private String patientDescription;
     private Status status;
+    private String doctorName;
+    private String patientName;
     private boolean willingToReschedule;
 
     public enum Status {
@@ -24,7 +26,8 @@ public class Appointment {
 
     public Appointment(
             int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,String patientId,
-            String doctorId, String receptionistId, String patientDescription, Status status, boolean willingToReschedule
+            String doctorId, String receptionistId, String patientDescription, Status status, boolean willingToReschedule,
+            String doctorName, String patientName
     ) {
 
         this.appointmentId = IdDAO.getAppointmentId();
@@ -36,6 +39,8 @@ public class Appointment {
         this.patientDescription = patientDescription;
         this.status = status;
         this.willingToReschedule = willingToReschedule;
+        this.doctorName = doctorName;
+        this.patientName = patientName;
     }
 
     public String getAppointmentId() {
@@ -74,6 +79,14 @@ public class Appointment {
         return willingToReschedule;
     }
 
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public String getPatientName() {
+        return patientName;
+    }
+
     public void setStatus(Status status) {
         this.status = status;
     }
@@ -92,5 +105,13 @@ public class Appointment {
 
     public void setReceptionistId(String receptionistId) {
         this.receptionistId = receptionistId;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public void setPatientDescription(String description) {
+        this.patientDescription = description;
     }
 }
