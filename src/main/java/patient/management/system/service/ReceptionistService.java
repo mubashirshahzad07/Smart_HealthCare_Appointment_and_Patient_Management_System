@@ -169,4 +169,20 @@ public class ReceptionistService {
     public List<EmergencyCaseDTO> searchTemporaryPatients(String query) {
         return emergencyCaseDAO.searchTemporaryPatients(query);
     }
+
+    public int getTodayAppointmentsCount() {
+        return appointmentDAO.getTodayAppointmentsCount();
+    }
+
+    public int getUpcomingAppointmentsCount() {
+        return appointmentDAO.getUpcomingAppointmentsCount();
+    }
+
+    public int getTotalEmergencyCasesCount() {
+        return emergencyCaseDAO.getEmergencyCases().size();
+    }
+
+    public int getTemporaryLinksCount() {
+        return emergencyCaseDAO.getTemporaryLinksCount();
+    }
 }
