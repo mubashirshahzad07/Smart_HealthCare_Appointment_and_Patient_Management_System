@@ -20,7 +20,9 @@ import java.util.List;
 
 public class AppointmentDAO {
     private final ObjectMapper mapper = new ObjectMapper();
+    private final PatientDAO patientDAO = new PatientDAO();
     private final DoctorDAO doctorDAO = new DoctorDAO();
+    private final DoctorScheduleDAO scheduleDAO = new DoctorScheduleDAO();
     private final File appointmentsFile = new File("data/appointments.json");
     private final File cancelledAppointmentsFile = new File("data/cancelled_appointments.json");
     private final File rescheduledAppointmentsFile = new File("data/rescheduled_appointments.json");
@@ -33,7 +35,6 @@ public class AppointmentDAO {
             String patientId, String doctorId, String receptionistId, String patientDescription,
             Appointment.Status status, boolean willingToReschedule, String patientName, String doctorName) {
 
-        PatientDAO patientDAO = new PatientDAO();
         patientDAO.patientRegistered(patientId);
 
         ArrayList<Appointment> appointments = getAppointmentsInternal();
@@ -84,16 +85,13 @@ public class AppointmentDAO {
                 Files.writeString(path, "0");
             }
 
-            String netFeeRead = Files.readString(path).trim();
+            String netFee = Files.readString(path).trim();
 
-            if (netFeeRead.isEmpty()) {
-                netFeeRead = "0";
+            if (netFee.isEmpty()) {
+                netFee = "0";
             }
 
-            double netFeeCollected = Double.parseDouble(netFeeRead);
-            Files.writeString(path, String.format("%f", netFeeRead));
-
-            return netFeeCollected;
+            return Double.parseDouble(netFee);
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load net fee collected.");
@@ -125,16 +123,13 @@ public class AppointmentDAO {
                 Files.writeString(path, "0");
             }
 
-            String totalFeeRead = Files.readString(path).trim();
+            String totalFee = Files.readString(path).trim();
 
-            if (totalFeeRead.isEmpty()) {
-                totalFeeRead = "0";
+            if (totalFee.isEmpty()) {
+                totalFee = "0";
             }
 
-            double totalFeeCollected = Double.parseDouble(totalFeeRead);
-            Files.writeString(path, String.format("%f", totalFeeRead));
-
-            return totalFeeCollected;
+            return Double.parseDouble(totalFee);
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load total fee collected.");
@@ -145,7 +140,7 @@ public class AppointmentDAO {
     public void incrementTotalRefundsCount() {
         int newTotalRefunds = getTotalRefundsCount() + 1;
 
-        Path path = Path.of(totalFeesFilePath);
+        Path path = Path.of(totalRefundsFilePath);
         try {
             if (!Files.exists(path) && !(path.getParent() == null)) {
                 Files.createDirectories(path.getParent());
@@ -166,16 +161,13 @@ public class AppointmentDAO {
                 Files.writeString(path, "0");
             }
 
-            String totalRefundsRead = Files.readString(path).trim();
+            String totalRefunds = Files.readString(path).trim();
 
-            if (totalRefundsRead.isEmpty()) {
-                totalRefundsRead = "0";
+            if (totalRefunds.isEmpty()) {
+                totalRefunds = "0";
             }
 
-            int totalRefunds = Integer.parseInt(totalRefundsRead);
-            Files.writeString(path, String.format("%d", totalRefundsRead));
-
-            return totalRefunds;
+            return Integer.parseInt(totalRefunds);
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load total refunds.");
@@ -183,9 +175,7 @@ public class AppointmentDAO {
 
     }
 
-    private ArrayList<Appointment> getAppointmentsInternal() {
-        updateAppointmentStatus();
-
+    private ArrayList<Appointment> loadAppointments() {
         try {
             if (!appointmentsFile.exists() || appointmentsFile.length() == 0) {
                 return new ArrayList<>();
@@ -201,11 +191,15 @@ public class AppointmentDAO {
         }
     }
 
+    private ArrayList<Appointment> getAppointmentsInternal() {
+        updateAppointmentStatus();
+        return loadAppointments();
+    }
+
     /**
      * checks if the selected slot is available and within working hours
      */
-    private void slotAvailable(ArrayList<Appointment> appointments, String appointmentDate, int appointmentHour,
-            String doctorId) {
+    private void slotAvailable(ArrayList<Appointment> appointments, String appointmentDate, int appointmentHour, String doctorId) {
         final int OPENING_HOUR = 9;
         final int CLOSING_HOUR = 21;
 
@@ -230,7 +224,7 @@ public class AppointmentDAO {
      * updates the status of appointments
      */
     private void updateAppointmentStatus() {
-        ArrayList<Appointment> appointments = new AppointmentDAO().getAppointmentsInternal();
+        ArrayList<Appointment> appointments = loadAppointments();
         final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
 
         for (Appointment appointment : appointments) {
@@ -394,6 +388,7 @@ public class AppointmentDAO {
         }
 
         setNetAmountCollected(-refund);
+        incrementTotalRefundsCount();
     }
 
     /**
@@ -414,7 +409,6 @@ public class AppointmentDAO {
 
             if (appointment.getAppointmentId().equals(appointmentId)) {
                 targetAppointment = appointment;
-                rescheduledAppointments.add(targetAppointment);
                 break;
             }
         }
@@ -433,6 +427,9 @@ public class AppointmentDAO {
         String vacantDate = targetAppointment.getAppointmentDate();
         int vacantHour = targetAppointment.getAppointmentHour();
 
+        rescheduledAppointments.add(mapper.convertValue(targetAppointment, Appointment.class));
+        appointments.remove(targetAppointment);
+
         slotAvailable(
                 appointments,
                 String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
@@ -444,6 +441,7 @@ public class AppointmentDAO {
         targetAppointment.setWillingToReschedule(willingToReschedule);
         targetAppointment.setDoctorName(doctorName);
         targetAppointment.setPatientDescription(patientDescription);
+        appointments.add(targetAppointment);
 
         rescheduleFollowingAppointments(appointments, vacantDate, vacantHour, doctorId);
 
@@ -507,9 +505,6 @@ public class AppointmentDAO {
         LocalDate parsedDate = LocalDate.parse(appointmentDate);
         DoctorSchedule.Day day = DoctorSchedule.Day.valueOf(parsedDate.getDayOfWeek().name());
 
-        DoctorDAO doctorDAO = new DoctorDAO();
-        DoctorScheduleDAO scheduleDAO = new DoctorScheduleDAO();
-
         List<DoctorDTO> doctors = doctorDAO.getActiveDoctors();
         List<DoctorSchedule> schedules = scheduleDAO.getSchedules();
         ArrayList<Appointment> appointments = getAppointmentsInternal();
@@ -568,7 +563,6 @@ public class AppointmentDAO {
     public ArrayList<String> getDoctorAvailableSlotsThisWeek(String doctorId) {
 
         ArrayList<Appointment> appointments = getAppointmentsInternal();
-        DoctorScheduleDAO scheduleDAO = new DoctorScheduleDAO();
         List<DoctorSchedule> schedules = scheduleDAO.getSchedules();
         ArrayList<String> availableSlots = new ArrayList<>();
         LocalDate today = LocalDate.now();
