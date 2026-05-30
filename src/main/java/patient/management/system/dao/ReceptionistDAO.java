@@ -50,7 +50,7 @@ public class ReceptionistDAO {
         }
     }
 
-    private ArrayList<Receptionist> getAllReceptionistsInternal() {
+    public List<ReceptionistDTO> getAllReceptionists() {
 
         try {
             if (!file.exists() || file.length() == 0) {
@@ -59,7 +59,7 @@ public class ReceptionistDAO {
 
             return mapper.readValue(
                     file,
-                    new TypeReference<ArrayList<Receptionist>>() {
+                    new TypeReference<ArrayList<ReceptionistDTO>>() {
                     });
 
         } catch (IOException e) {

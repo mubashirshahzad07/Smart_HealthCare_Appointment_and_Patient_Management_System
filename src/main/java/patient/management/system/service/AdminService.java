@@ -35,6 +35,14 @@ public class AdminService {
         }
     }
 
+    public List<DoctorDTO> getAllDoctors() {
+        try {
+            return doctorDAO.getAllDoctors();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
     public List<DoctorDTO> getActiveDoctors() {
         try {
             return doctorDAO.getActiveDoctors();
@@ -90,6 +98,14 @@ public class AdminService {
     public void inactivateReceptionist(String id) {
         try {
             receptionistDAO.inactivateReceptionist(id);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<ReceptionistDTO> getAllReceptionists() {
+        try {
+            return receptionistDAO.getAllReceptionists();
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

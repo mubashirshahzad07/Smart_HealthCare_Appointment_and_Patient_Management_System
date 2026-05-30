@@ -23,7 +23,7 @@ public class DoctorDAO {
             String username, String password, String doctorName,
             double appointmentFee, Doctor.Specialization specialization) {
 
-        ArrayList<Doctor> doctors = getAllDoctors();
+        ArrayList<Doctor> doctors = getAllDoctorsInternal();
         usernameAvailable(doctors, username);
 
         Doctor newDoctor = new Doctor(username, password, doctorName, appointmentFee, specialization);
@@ -62,7 +62,7 @@ public class DoctorDAO {
     /**
      * @return all the active and inactive doctors
      */
-    private ArrayList<Doctor> getAllDoctors() {
+    private ArrayList<Doctor> getAllDoctorsInternal() {
 
         try {
 
@@ -73,6 +73,24 @@ public class DoctorDAO {
             return mapper.readValue(
                     file,
                     new TypeReference<ArrayList<Doctor>>() {
+                    });
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load doctors data.");
+        }
+    }
+
+    public ArrayList<DoctorDTO> getAllDoctors() {
+
+        try {
+
+            if (!file.exists() || file.length() == 0) {
+                return new ArrayList<>();
+            }
+
+            return mapper.readValue(
+                    file,
+                    new TypeReference<ArrayList<DoctorDTO>>() {
                     });
 
         } catch (IOException e) {
