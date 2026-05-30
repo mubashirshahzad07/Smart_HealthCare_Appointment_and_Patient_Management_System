@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import patient.management.system.dto.MedicalRecordDTO;
 import patient.management.system.model.MedicalRecord;
 import patient.management.system.model.TriageColor;
+import patient.management.system.model.MedicalRecord.RecordType;
 import patient.management.system.model.MedicalRecord.Record_Status;
 
 import java.io.File;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
 
 public class MedicalRecordDAO {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -150,5 +152,16 @@ public class MedicalRecordDAO {
         } catch (IOException e) {
             throw new RuntimeException("Unable to update linked patient.");
         }
+    }
+
+    public int getCompletedCasesTodayCount(TriageColor triagecolor) {
+
+        return (int) getMedicalRecordsInternal()
+                .stream()
+                .filter(record -> record.getRecordType() == RecordType.EMERGENCY)
+                .filter(record -> record.getTriageColor() == triagecolor)
+                .filter(record -> record.getRecordStatus() == Record_Status.COMPLETED)
+                .filter(record -> LocalDateTime.parse(record.getRecordDateTime()).toLocalDate().equals(LocalDate.now()))
+                .count();
     }
 }

@@ -39,6 +39,10 @@ public class EmergencyTeamService {
         return emergencyCaseDAO.getCompletedEmergencyCasesCount(triageColor);
     }
 
+    public int getCompletedCasesTodayCount(TriageColor triageColor) {
+        return medicalRecordDAO.getCompletedCasesTodayCount(triageColor);
+    }
+
     public int getActiveEmergencyCasesCount(TriageColor triageColor) {
         return emergencyCaseDAO.getActiveEmergencyCasesCount(triageColor);
     }

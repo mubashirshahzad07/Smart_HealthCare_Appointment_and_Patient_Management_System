@@ -15,6 +15,7 @@ public class MedicalRecordDTO {
     private String notes;
     private String triageColor;
     private String recordDateTime;
+    private String recordStatus;
 
     public MedicalRecordDTO() {}
 
@@ -68,5 +69,9 @@ public class MedicalRecordDTO {
 
     public String getRecordDateTime() {
         return recordDateTime;
+    }
+
+    public String getRecordStatus() {
+        return recordStatus;
     }
 }
