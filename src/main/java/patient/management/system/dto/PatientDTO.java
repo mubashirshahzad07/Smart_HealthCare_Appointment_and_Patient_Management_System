@@ -22,7 +22,7 @@ public class PatientDTO {
         return gender;
     }
 
-    public double getAge() {
+    public int getAge() {
         return age;
     }
 

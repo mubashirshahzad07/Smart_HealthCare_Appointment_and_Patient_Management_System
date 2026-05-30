@@ -9,7 +9,7 @@ public class EmergencyCaseDTO {
     private int age;
     private String gender;
     private String cnic;
-    private String arrivalDate;
+    private String arrivalTime;
     private String initialComplaint;
     private String triageColor;
     private String triageRemark;
@@ -50,8 +50,8 @@ public class EmergencyCaseDTO {
         return cnic;
     }
 
-    public String getArrivalDate() {
-        return arrivalDate;
+    public String getArrivalTime() {
+        return arrivalTime;
     }
 
     public String getInitialComplaint() {

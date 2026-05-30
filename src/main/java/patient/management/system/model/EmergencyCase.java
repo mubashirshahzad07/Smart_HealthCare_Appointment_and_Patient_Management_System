@@ -27,6 +27,8 @@ public class EmergencyCase {
         MOVED_TO_WARD
     }
 
+    public EmergencyCase() {}
+
     public EmergencyCase(
             String patientId,
             String temporaryPatientId,
