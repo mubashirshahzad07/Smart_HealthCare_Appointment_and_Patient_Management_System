@@ -12,6 +12,9 @@ public class AdminService {
     private final ReceptionistDAO receptionistDAO = new ReceptionistDAO();
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
     private final DoctorScheduleDAO doctorScheduleDAO = new DoctorScheduleDAO();
+    private final EmergencyTeamDAO emergencyTeamDAO = new EmergencyTeamDAO();
+    private final EmergencyCaseDAO emergencyCaseDAO = new EmergencyCaseDAO();
+    private final PatientDAO patientDAO = new PatientDAO();
 
     public void addDoctor(
         String username, String password, String doctorName, double appointmentFee,
@@ -41,6 +44,10 @@ public class AdminService {
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    public int getTotalDoctorsCount() {
+        return getAllDoctors().size();
     }
 
     public List<DoctorDTO> getActiveDoctors() {
@@ -111,6 +118,10 @@ public class AdminService {
         }
     }
 
+    public int getTotalReceptionistCount() {
+        return getAllReceptionists().size();
+    }
+
     public List<ReceptionistDTO> getActiveReceptionists() {
         try {
             return receptionistDAO.getActiveReceptionists();
@@ -143,15 +154,15 @@ public class AdminService {
         }
     }
 
-    public int getTotalBookedAppointments() {
-        return appointmentDAO.getAppointments().size() + getTotalCancelledAppointments();
+    public int getTotalBookedAppointmentsCount() {
+        return appointmentDAO.getAppointments().size() + getTotalCancelledAppointmentsCount();
     }
 
-    public int getTotalCancelledAppointments() {
+    public int getTotalCancelledAppointmentsCount() {
         return getCancelledAppointments().size();
     }
 
-    public int getTotalRescheduledAppointments() {
+    public int getTotalRescheduledAppointmentsCount() {
         return getRescheduledAppointments().size();
     }
 
@@ -177,5 +188,45 @@ public class AdminService {
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    public void addEmergencyTeam(String username, String name, String password, TriageColor triageColor) {
+        try {
+            emergencyTeamDAO.addEmergencyTeam(username, name, password, triageColor);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<EmergencyTeamDTO> getEmergencyTeams() {
+        try {
+            return emergencyTeamDAO.getEmergencyTeams();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public int getTotalEmergencyTeamsCount() {
+        return getEmergencyTeams().size();
+    }
+
+    public int getTodayAppointmentsCount() {
+        return appointmentDAO.getTodayAppointmentsCount();
+    }
+
+    public int getUpcomingAppointmentsCount() {
+        return appointmentDAO.getUpcomingAppointmentsCount();
+    }
+
+    public int getTotalEmergencyCasesCount() {
+        return emergencyCaseDAO.getEmergencyCases().size();
+    }
+
+    public int getTemporaryLinksCount() {
+        return emergencyCaseDAO.getTemporaryLinksCount();
+    }
+
+    public int getTotalPatientsCount() {
+        return patientDAO.getPatients().size();
     }
 }

@@ -154,22 +154,6 @@ public class ReceptionistService {
         }
     }
 
-    public int getTodayAppointmentsCount() {
-        return appointmentDAO.getTodayAppointmentsCount();
-    }
-
-    public int getUpcomingAppointmentsCount() {
-        return appointmentDAO.getUpcomingAppointmentsCount();
-    }
-
-    public int getTotalEmergencyCasesCount() {
-        return emergencyCaseDAO.getEmergencyCases().size();
-    }
-
-    public int getTemporaryLinksCount() {
-        return emergencyCaseDAO.getTemporaryLinksCount();
-    }
-
     public List<PatientDTO> searchPatient(String query) {
         return patientDAO.searchPatient(query);
     }
