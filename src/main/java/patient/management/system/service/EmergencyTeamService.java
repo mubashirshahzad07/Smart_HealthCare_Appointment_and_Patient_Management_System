@@ -19,12 +19,36 @@ public class EmergencyTeamService {
         }
     }
 
-    public int getCompletedEmergencyCasesCount() {
-        return emergencyCaseDAO.getCompletedEmergencyCasesCount();
+    public List<EmergencyCaseDTO> getEmergencyCases() {
+        try {
+        return emergencyCaseDAO.getEmergencyCases();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
-    public int getActiveEmergencyCasesCount() {
-        return emergencyCaseDAO.getActiveEmergencyCasesCount();
+    public List<EmergencyCaseDTO> getEmergencyCasesByTriageColor(TriageColor triageColor) {
+        try {
+        return emergencyCaseDAO.getEmergencyCasesByTriageColor(triageColor);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public int getCompletedEmergencyCasesCount(TriageColor triageColor) {
+        return emergencyCaseDAO.getCompletedEmergencyCasesCount(triageColor);
+    }
+
+    public int getActiveEmergencyCasesCount(TriageColor triageColor) {
+        return emergencyCaseDAO.getActiveEmergencyCasesCount(triageColor);
+    }
+
+    public int getMovedToICUCount(TriageColor triageColor) {
+        return emergencyCaseDAO.getMovedToICUCount(triageColor);
+    }
+
+    public int getMovedToWardCount(TriageColor triageColor) {
+        return emergencyCaseDAO.getMovedToWardCount(triageColor);
     }
 
     public void updateEmergencyMedicalRecord(

@@ -1,7 +1,5 @@
 package patient.management.system.dto;
 
-import patient.management.system.model.Doctor;
-
 import java.util.List;
 
 public class DoctorAvailabilityDTO {

@@ -133,6 +133,13 @@ public class EmergencyCaseDAO {
         }
     }
 
+    public List<EmergencyCaseDTO> getEmergencyCasesByTriageColor(TriageColor triageColor) {
+
+        return getEmergencyCases().stream()
+                .filter(c -> c.getTriageColor().equalsIgnoreCase(triageColor.name()))
+                .toList();
+    }
+
     public List<EmergencyCaseDTO> getCasesByTriageColor(String triageColor) {
         return getEmergencyCases()
                 .stream()
@@ -140,12 +147,15 @@ public class EmergencyCaseDAO {
                 .toList();
     }
 
-    public int getCompletedEmergencyCasesCount() {
-        List<EmergencyCaseDTO> emergencyCases = getEmergencyCases();
+    public int getCompletedEmergencyCasesCount(TriageColor triageColor) {
+        List<EmergencyCaseDTO> cases = getEmergencyCases();
+        List<EmergencyCaseDTO> colorCases = cases.stream()
+                        .filter(c -> c.getTriageColor().equalsIgnoreCase(triageColor.name()))
+                        .toList();
 
         int count = 0;
 
-        for (EmergencyCaseDTO emergencyCase : emergencyCases) {
+        for (EmergencyCaseDTO emergencyCase : colorCases) {
             if (emergencyCase.getStatus().equals("COMPLETE")) {
                 count++;
             }
@@ -154,12 +164,15 @@ public class EmergencyCaseDAO {
         return count;
     }
 
-    public int getActiveEmergencyCasesCount() {
-        List<EmergencyCaseDTO> emergencyCases = getEmergencyCases();
+    public int getActiveEmergencyCasesCount(TriageColor triageColor) {
+        List<EmergencyCaseDTO> cases = getEmergencyCases();
+        List<EmergencyCaseDTO> colorCases = cases.stream()
+                        .filter(c -> c.getTriageColor().equalsIgnoreCase(triageColor.name()))
+                        .toList();
 
         int count = 0;
 
-        for (EmergencyCaseDTO emergencyCase : emergencyCases) {
+        for (EmergencyCaseDTO emergencyCase : colorCases) {
             if (emergencyCase.getStatus().equals("ACTIVE")) {
                 count++;
             }
@@ -308,5 +321,27 @@ public class EmergencyCaseDAO {
         }
 
         return report;
+    }
+
+    public int getMovedToICUCount(TriageColor triageColor) {
+        List<EmergencyCaseDTO> cases = getEmergencyCases();
+        List<EmergencyCaseDTO> colorCases = cases.stream()
+                .filter(c -> c.getTriageColor().equalsIgnoreCase(triageColor.name()))
+                .toList();
+
+        return (int) colorCases.stream()
+                .filter(c -> "moved to icu".equalsIgnoreCase(c.getFinalOutcome()))
+                .count();
+    }
+
+    public int getMovedToWardCount(TriageColor triageColor) {
+        List<EmergencyCaseDTO> cases = getEmergencyCases();
+        List<EmergencyCaseDTO> colorCases = cases.stream()
+                .filter(c -> c.getTriageColor().equalsIgnoreCase(triageColor.name()))
+                .toList();
+
+        return (int) colorCases.stream()
+                .filter(c -> "moved to ward".equalsIgnoreCase(c.getFinalOutcome()))
+                .count();
     }
 }
