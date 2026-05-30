@@ -16,12 +16,25 @@ public class DoctorScheduleDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final File file = new File("data/doctor_schedules.json");
 
-    public void addSchedule(String doctorId, DoctorSchedule.Day day, DoctorSchedule.Shift shift) {
+    public void addSchedule(String doctorId, DoctorSchedule.Day startDay, DoctorSchedule.Day endDay, DoctorSchedule.Shift shift) {
 
         doctorRegistered(doctorId);
         ArrayList<DoctorSchedule> schedules = getSchedulesInternal();
-        duplicateSchedule(schedules, doctorId, day, shift);
-        schedules.add(new DoctorSchedule(doctorId, day, shift));
+
+        DoctorSchedule.Day[] days = DoctorSchedule.Day.values();
+
+        int start = startDay.ordinal();
+        int end = endDay.ordinal();
+
+        if (start > end) {
+            throw new RuntimeException("Start day must come before end day.");
+        }
+
+        for (int i = start; i <= end; i++) {
+            DoctorSchedule.Day day = days[i];
+            duplicateSchedule(schedules, doctorId, day, shift);
+            schedules.add(new DoctorSchedule(doctorId, day, shift));
+        }
 
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(file, schedules);
@@ -30,21 +43,50 @@ public class DoctorScheduleDAO {
         }
     }
 
-    public void updateDoctorSchedule(String doctorId, List<DoctorSchedule> updatedSchedules) {
+    // public void updateDoctorSchedule(String doctorId, List<DoctorSchedule> updatedSchedules) {
 
-        if (updatedSchedules == null || updatedSchedules.isEmpty()) {
-            throw new RuntimeException("Doctor must have at least one schedule.");
-        }
+    //     if (updatedSchedules == null || updatedSchedules.isEmpty()) {
+    //         throw new RuntimeException("Doctor must have at least one schedule.");
+    //     }
+
+    //     doctorRegistered(doctorId);
+    //     ArrayList<DoctorSchedule> schedules = getSchedulesInternal();
+    //     schedules.removeIf(schedule -> schedule.getDoctorId().equals(doctorId));
+
+    //     for (DoctorSchedule schedule : updatedSchedules) {
+
+    //         duplicateSchedule(schedules, doctorId, schedule.getDay(), schedule.getShift());
+
+    //         schedules.add(new DoctorSchedule(doctorId, schedule.getDay(), schedule.getShift()));
+    //     }
+
+    //     try {
+    //         mapper.writerWithDefaultPrettyPrinter().writeValue(file, schedules);
+    //     } catch (IOException e) {
+    //         throw new RuntimeException("Unable to update schedules.");
+    //     }
+    // }
+
+    public void updateDoctorSchedule(String doctorId, DoctorSchedule.Day startDay, DoctorSchedule.Day endDay, DoctorSchedule.Shift shift) {
 
         doctorRegistered(doctorId);
         ArrayList<DoctorSchedule> schedules = getSchedulesInternal();
+
         schedules.removeIf(schedule -> schedule.getDoctorId().equals(doctorId));
 
-        for (DoctorSchedule schedule : updatedSchedules) {
+        DoctorSchedule.Day[] days = DoctorSchedule.Day.values();
 
-            duplicateSchedule(schedules, doctorId, schedule.getDay(), schedule.getShift());
+        int start = startDay.ordinal();
+        int end = endDay.ordinal();
 
-            schedules.add(new DoctorSchedule(doctorId, schedule.getDay(), schedule.getShift()));
+        if (start > end) {
+            throw new RuntimeException("Start day must come before end day.");
+        }
+
+        for (int i = start; i <= end; i++) {
+            DoctorSchedule.Day day = days[i];
+            duplicateSchedule(schedules, doctorId, day, shift);
+            schedules.add(new DoctorSchedule(doctorId, day, shift));
         }
 
         try {

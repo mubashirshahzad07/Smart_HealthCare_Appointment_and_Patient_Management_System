@@ -6,7 +6,8 @@ public class AdminDTO {
     private String name;
     private String adminId;
 
-    public AdminDTO() {}
+    public AdminDTO() {
+    }
 
     public String getUserId() {
         return userId;
