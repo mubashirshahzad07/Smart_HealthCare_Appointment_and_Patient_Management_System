@@ -265,11 +265,23 @@ public class LoginFrame extends JFrame {
             setVisible(false);
             new ReceptionistFrame(this, loggedInUser);
         } else if (loggedInUser.getRole().equalsIgnoreCase("EMERGENCY_TEAM")) {
-            EmergencyTeamService emergencyTeamService = new EmergencyTeamService();
-            EmergencyTeam team = emergencyTeamService.getEmergencyTeam(loggedInUser.getUserId());
-            
-            setVisible(false);
-            new EmergencyTeamFrame(this, loggedInUser, team);
+            try {
+                EmergencyTeamService emergencyTeamService = new EmergencyTeamService();
+                EmergencyTeam team = emergencyTeamService.getEmergencyTeam(
+                        loggedInUser.getUserId()
+                );
+
+                setVisible(false);
+                new EmergencyTeamFrame(this, loggedInUser, team);
+
+            } catch (RuntimeException exception) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        exception.getMessage(),
+                        "Emergency Team Login Failed",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
         } else if (loggedInUser.getRole().equalsIgnoreCase("DOCTOR")) {
             setVisible(false);
             new DoctorFrame(this, loggedInUser);
