@@ -9,6 +9,7 @@ import java.util.List;
 public class EmergencyTeamService {
     private final EmergencyCaseDAO emergencyCaseDAO = new EmergencyCaseDAO();
     private final MedicalRecordDAO medicalRecordDAO = new MedicalRecordDAO();
+    private final EmergencyTeamDAO emergencyTeamDAO = new EmergencyTeamDAO();
 
     public List<EmergencyCaseDTO> getTemporaryCases() {
         try {
@@ -55,5 +56,14 @@ public class EmergencyTeamService {
                 notes);
 
         emergencyCaseDAO.completeEmergencyCase(emergencyCaseId, finalOutcome);
+    }
+
+    // query -> userId or username
+    public EmergencyTeam getEmergencyTeam(String query) {
+        try {
+            return emergencyTeamDAO.getEmergencyTeam(query);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 }

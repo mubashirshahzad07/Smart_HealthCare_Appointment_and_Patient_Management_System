@@ -61,4 +61,16 @@ public class EmergencyTeamDAO {
             throw new RuntimeException("Unable to load emergency teams.");
         }
     }
+
+    public EmergencyTeam getEmergencyTeam(String query) {
+        ArrayList<EmergencyTeam> teams = getEmergencyTeamsInternal();
+
+        for (EmergencyTeam team : teams) {
+            if (team.getUserId().equals(query) || team.getUsername().equals(query)) {
+                return team;
+            }
+        }
+
+        throw new RuntimeException("No team with given userId or username exists.");
+    }
 }
