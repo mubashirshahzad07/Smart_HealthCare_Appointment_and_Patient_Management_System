@@ -223,10 +223,6 @@ public class EmergencyCaseDAO {
         throw new RuntimeException("Emergency case not found.");
     }
 
-    /**
-     * @param emergencyId temp id or emergency case id
-     * @param patientId 
-     */
     public void linkTemporaryPatient(String emergencyId, String patientId) {
 
         new PatientDAO().patientRegistered(patientId);
@@ -234,7 +230,7 @@ public class EmergencyCaseDAO {
         ArrayList<EmergencyCase> emergencyCases = getEmergencyCasesInternal();
 
         for (EmergencyCase emergencyCase : emergencyCases) {
-            if (emergencyCase.getEmergencyCaseId().equals(emergencyId) || emergencyCase.getTemporaryPatientId().equals(emergencyId)) {
+            if (emergencyCase.getEmergencyCaseId().equals(emergencyId)) {
                 emergencyCase.setPatientId(patientId);
                 emergencyCase.setIsTemporaryPatient(false);
 
@@ -253,15 +249,6 @@ public class EmergencyCaseDAO {
         throw new RuntimeException("Emergency case not found.");
     }
 
-    /**
-     * @param emergencyId temp id or emergency case id
-     * @param patientName
-     * @param age
-     * @param gender
-     * @param phoneNumber
-     * @param cnic
-     * @param email
-     */
     public void registerAndLinkTemporaryPatient(String emergencyId, String patientName, int age, String gender, String phoneNumber, String cnic, String email) {
         String patientId = new PatientDAO().addPatient(patientName, gender, age, email, cnic).getPatientId();
 
@@ -284,10 +271,9 @@ public class EmergencyCaseDAO {
 
                     boolean matchesName = emergencyCase.getPatientName() != null && emergencyCase.getPatientName().toLowerCase().contains(lowerQuery);
                     boolean matchesCNIC = emergencyCase.getCnic() != null && emergencyCase.getCnic().toLowerCase().contains(lowerQuery);
-                    boolean matchesTempId = emergencyCase.getTemporaryPatientId() != null && emergencyCase.getTemporaryPatientId().toLowerCase().contains(lowerQuery);
                     boolean matchesCaseId = emergencyCase.getEmergencyCaseId() != null && emergencyCase.getEmergencyCaseId().toLowerCase().contains(lowerQuery);
 
-                    return matchesName || matchesCNIC || matchesTempId || matchesCaseId;
+                    return matchesName || matchesCNIC || matchesCaseId;
                 })
                 .toList();
     }

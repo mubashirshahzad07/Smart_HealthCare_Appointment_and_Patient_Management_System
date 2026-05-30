@@ -115,9 +115,6 @@ public class ReceptionistService {
         }
     }
 
-    /**
-     * @param emergencyId temp id or emergency case id
-     */
     public void linkTemporaryPatient(String emergencyId, String patientId) {
         try {
             emergencyCaseDAO.linkTemporaryPatient(emergencyId, patientId);
@@ -126,9 +123,6 @@ public class ReceptionistService {
         }
     }
 
-    /**
-     * @param emergencyId temp id or emergency case id
-     */
     public void registerAndLinkTemporaryPatient(String emergencyId, String patientName, int age, String gender, String phoneNumber, String cnic, String email) {
         try {
             emergencyCaseDAO.registerAndLinkTemporaryPatient(emergencyId, patientName, age, gender, phoneNumber, cnic, email);
