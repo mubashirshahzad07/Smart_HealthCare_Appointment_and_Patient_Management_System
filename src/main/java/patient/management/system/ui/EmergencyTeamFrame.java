@@ -1,6 +1,7 @@
-/*package patient.management.system.ui;
+package patient.management.system.ui;
 
 import patient.management.system.model.User;
+import patient.management.system.model.EmergencyTeam;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -23,15 +24,17 @@ public class EmergencyTeamFrame extends JFrame {
 
     private final JFrame loginFrame;
     private final User loggedInUser;
+    private final EmergencyTeam loggedInTeam;
     private final Color accentColor;
     private final CardLayout cardLayout;
     private final JPanel contentPanel;
     private final Map<String, JButton> menuButtons;
 
-    public EmergencyTeamFrame(JFrame loginFrame, User loggedInUser) {
+    public EmergencyTeamFrame(JFrame loginFrame, User loggedInUser, EmergencyTeam loggedInTeam) {
         this.loginFrame = loginFrame;
         this.loggedInUser = loggedInUser;
-        this.accentColor = colorForTriage(loggedInUser.getTriageColor());
+        this.loggedInTeam = loggedInTeam;
+        this.accentColor = colorForTriage(loggedInTeam.getTriageColor());
         this.cardLayout = new CardLayout();
         this.contentPanel = new JPanel(cardLayout);
         this.menuButtons = new LinkedHashMap<>();
@@ -53,7 +56,7 @@ public class EmergencyTeamFrame extends JFrame {
 
     private JPanel buildSidebar() {
         JPanel sidebar = new JPanel(new GridBagLayout());
-        sidebar.setBackground(sidebarColorForTriage(loggedInUser.getTriageColor()));
+        sidebar.setBackground(sidebarColorForTriage(loggedInTeam.getTriageColor()));
         sidebar.setPreferredSize(new Dimension(220, 650));
         sidebar.setBorder(BorderFactory.createEmptyBorder(22, 16, 22, 16));
 
@@ -61,7 +64,7 @@ public class EmergencyTeamFrame extends JFrame {
         nameLabel.setForeground(Color.WHITE);
         nameLabel.setFont(UITheme.HEADING_FONT);
 
-        JLabel triageLabel = new JLabel(loggedInUser.getTriageColor() + " Emergency Team");
+        JLabel triageLabel = new JLabel(loggedInTeam.getTriageColor() + " Emergency Team");
         triageLabel.setForeground(new Color(0xBFD9E4));
         triageLabel.setFont(UITheme.BODY_FONT);
 
@@ -94,7 +97,7 @@ public class EmergencyTeamFrame extends JFrame {
     }
 
     private JPanel buildCards() {
-        contentPanel.add(new EmergencyTeamDashboardPanel(loggedInUser, accentColor), "DASHBOARD");
+        contentPanel.add(new EmergencyTeamDashboardPanel(loggedInUser, loggedInTeam, accentColor), "DASHBOARD");
         contentPanel.add(new EmergencyMedicalRecordsPanel(loggedInUser, accentColor), "MEDICAL_RECORDS");
         return contentPanel;
     }
@@ -170,4 +173,4 @@ public class EmergencyTeamFrame extends JFrame {
         }
         return UITheme.NAVY;
     }
-}*/
+}

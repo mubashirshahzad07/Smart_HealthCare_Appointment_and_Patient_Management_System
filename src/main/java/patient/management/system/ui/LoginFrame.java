@@ -2,6 +2,9 @@ package patient.management.system.ui;
 
 import patient.management.system.model.Role;
 import patient.management.system.model.User;
+import patient.management.system.model.EmergencyTeam;
+import patient.management.system.service.LoginService;
+import patient.management.system.service.EmergencyTeamService;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -237,19 +240,19 @@ public class LoginFrame extends JFrame {
 
         /*
          * Backend integration point:
-         * Later, replace authenticateTemporaryUser(...) with something like:
          *
-         * UserService userService = new UserService();
-         * User loggedInUser = userService.login(username, password, selectedRole);
-         *
-         * That service can read users from a file such as data/users.txt.
          */
-        User loggedInUser = authenticateTemporaryUser(username, password, selectedRole);
+        User loggedInUser;
 
-        if (loggedInUser == null) {
+        try {
+            LoginService loginService = new LoginService();
+
+            loggedInUser = loginService.login( username, password, selectedRole.toString());
+
+        } catch (RuntimeException e) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Invalid username, password, or role.",
+                    e.getMessage(),
                     "Login Failed",
                     JOptionPane.ERROR_MESSAGE
             );
@@ -262,9 +265,12 @@ public class LoginFrame extends JFrame {
         } else if (loggedInUser.getRole().equalsIgnoreCase("RECEPTIONIST")) {
             setVisible(false);
             new ReceptionistFrame(this, loggedInUser);
-    //    } else if (loggedInUser.getRole().equalsIgnoreCase("EMERGENCY_TEAM")) {
-    //        setVisible(false);
-    //        new EmergencyTeamFrame(this, loggedInUser);
+        } else if (loggedInUser.getRole().equalsIgnoreCase("EMERGENCY_TEAM")) {
+            EmergencyTeamService emergencyTeamService = new EmergencyTeamService();
+            EmergencyTeam team = emergencyTeamService.getEmergencyTeam(loggedInUser.getUserId());
+            
+            setVisible(false);
+            new EmergencyTeamFrame(this, loggedInUser, team);
         } else if (loggedInUser.getRole().equalsIgnoreCase("DOCTOR")) {
             setVisible(false);
             new DoctorFrame(this, loggedInUser);
@@ -273,31 +279,6 @@ public class LoginFrame extends JFrame {
         usernameField.setText("");
         passwordField.setText("");
         usernameField.requestFocusInWindow();
-    }
-
-    private User authenticateTemporaryUser(String username, String password, Role role) {
-        for (User user : temporaryUsers()) {
-            boolean usernameMatches = user.getUsername().equalsIgnoreCase(username);
-            boolean passwordMatches = user.getPassword().equals(password);
-            boolean roleMatches = user.getRole().equalsIgnoreCase(role.toString());
-
-            if (usernameMatches && passwordMatches && roleMatches) {
-                return user;
-            }
-        }
-
-        return null;
-    }
-
-    private List<User> temporaryUsers() {
-        List<User> users = new ArrayList<>();
-        users.add(new User("admin", "Admin User", "admin123", Role.ADMIN));
-        users.add(new User("receptionist", "Ayesha Khan", "recep123", Role.RECEPTIONIST));
-        users.add(new User("doctor", "Dr. Ahmed", "doc123", Role.DOCTOR));
-        users.add(new User("red_team", "Red Team", "red123", Role.EMERGENCY_TEAM));
-        users.add(new User("yellow_team", "Yellow Team", "yellow123", Role.EMERGENCY_TEAM));
-        users.add(new User("green_team", "Green Team", "green123", Role.EMERGENCY_TEAM));
-        return users;
     }
 
     private static class RoundedPanel extends JPanel {

@@ -1,6 +1,7 @@
-/*package patient.management.system.ui;
+package patient.management.system.ui;
 
 import patient.management.system.model.User;
+import patient.management.system.model.EmergencyTeam;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -15,11 +16,13 @@ import java.awt.GridLayout;
 
 public class EmergencyTeamDashboardPanel extends JPanel {
     private final User loggedInUser;
+    private final EmergencyTeam loggedInTeam;
     private final Color accentColor;
 
-    public EmergencyTeamDashboardPanel(User loggedInUser, Color accentColor) {
+    public EmergencyTeamDashboardPanel(User loggedInUser, EmergencyTeam loggedInTeam, Color accentColor) {
         super(new BorderLayout(18, 18));
         this.loggedInUser = loggedInUser;
+        this.loggedInTeam = loggedInTeam;
         this.accentColor = accentColor;
         setBackground(UITheme.BACKGROUND);
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
@@ -32,7 +35,7 @@ public class EmergencyTeamDashboardPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
 
-        JLabel title = AppUI.pageTitle(loggedInUser.getTriageColor() + " Team Dashboard");
+        JLabel title = AppUI.pageTitle(loggedInTeam.getTriageColor() + " Team Dashboard");
 
         JLabel hint = new JLabel("Emergency case overview for this triage team.");
         hint.setFont(UITheme.BODY_FONT);
@@ -91,7 +94,7 @@ public class EmergencyTeamDashboardPanel extends JPanel {
          * Backend integration point:
          * Later, load cases for loggedInUser.getTriageColor().
          */
-/*        model.addRow(new Object[]{"E101", "Unknown Male", "45", "Male", "Chest pain", "2026-05-28 13:10", "ACTIVE"});
+        model.addRow(new Object[]{"E101", "Unknown Male", "45", "Male", "Chest pain", "2026-05-28 13:10", "ACTIVE"});
         model.addRow(new Object[]{"E102", "Usman Shah", "33", "Male", "Severe headache", "2026-05-28 13:45", "ACTIVE"});
         model.addRow(new Object[]{"E099", "Sara Ali", "24", "Female", "High fever", "2026-05-28 09:20", "COMPLETE"});
 
@@ -133,4 +136,4 @@ public class EmergencyTeamDashboardPanel extends JPanel {
         });
     }
 
-}*/
+}
