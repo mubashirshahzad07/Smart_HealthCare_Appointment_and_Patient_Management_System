@@ -9,29 +9,18 @@ public class DoctorScheduleService {
 
     private final DoctorScheduleDAO doctorScheduleDAO = new DoctorScheduleDAO();
 
-    public void addSchedule(String doctorId, String startDay, String endDay, String shift) {
+    public void addSchedule(String doctorId, DoctorSchedule.Day startDay, DoctorSchedule.Day endDay, DoctorSchedule.Shift shift) {
 
         try {
-            doctorScheduleDAO.addSchedule(
-                doctorId, 
-                DoctorSchedule.Day.valueOf(startDay.toUpperCase()),
-                DoctorSchedule.Day.valueOf(endDay.toUpperCase()),
-                DoctorSchedule.Shift.valueOf(shift.toUpperCase())
-            );
+            doctorScheduleDAO.addSchedule(doctorId, startDay, endDay, shift);
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public void updateDoctorSchedule(String doctorId, String startDay, String endDay, String shift) {
-
+    public void updateDoctorSchedule(String doctorId, DoctorSchedule.Day startDay, DoctorSchedule.Day endDay, DoctorSchedule.Shift shift) {
         try {
-            doctorScheduleDAO.updateDoctorSchedule(
-                doctorId, 
-                DoctorSchedule.Day.valueOf(startDay.toUpperCase()),
-                DoctorSchedule.Day.valueOf(endDay.toUpperCase()),
-                DoctorSchedule.Shift.valueOf(shift.toUpperCase())
-            );
+            doctorScheduleDAO.updateDoctorSchedule(doctorId, startDay, endDay, shift);
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
