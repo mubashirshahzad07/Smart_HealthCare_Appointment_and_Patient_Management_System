@@ -1,23 +1,20 @@
 package patient.management.system.dao;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import patient.management.system.dto.DoctorDTO;
 import patient.management.system.model.Doctor;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DoctorDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final File file = new File("data/doctors.json");
-
-    public void main(String[] args) {
-        // new DoctorDAO().addDoctor("username", "password", "doctor name", 500,
-        // Doctor.Specialization.GENERAL_PHYSICIAN);
-    }
 
     public void addDoctor(
             String username, String password, String doctorName,
@@ -230,5 +227,21 @@ public class DoctorDAO {
         }
 
         return 0;
+    }
+
+    public void updateDoctorFee(String doctorId, double fee) {
+        ArrayList<Doctor> doctors = getAllDoctorsInternal();
+
+        for (Doctor doctor : doctors) {
+            if (doctor.getDoctorId().equals(doctorId)) {
+                doctor.setAppointmentFee(fee);
+            }
+        }
+
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(file, doctors);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to update doctor's appointment fee.");
+        }
     }
 }

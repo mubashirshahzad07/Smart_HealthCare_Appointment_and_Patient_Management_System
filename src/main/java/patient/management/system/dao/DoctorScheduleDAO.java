@@ -67,10 +67,11 @@ public class DoctorScheduleDAO {
     //     }
     // }
 
-    public void updateDoctorSchedule(String doctorId, DoctorSchedule.Day startDay, DoctorSchedule.Day endDay, DoctorSchedule.Shift shift) {
+    public void updateDoctorSchedule(String doctorId, DoctorSchedule.Day startDay, DoctorSchedule.Day endDay, DoctorSchedule.Shift shift, double fee) {
 
         doctorRegistered(doctorId);
         ArrayList<DoctorSchedule> schedules = getSchedulesInternal();
+        new DoctorDAO().updateDoctorFee(doctorId, fee);
 
         schedules.removeIf(schedule -> schedule.getDoctorId().equals(doctorId));
 

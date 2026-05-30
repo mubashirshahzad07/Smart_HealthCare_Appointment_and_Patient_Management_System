@@ -58,4 +58,8 @@ public class Doctor extends User {
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
     }
+
+    public void setAppointmentFee(double appointmentFee) {
+        this.appointmentFee = appointmentFee;
+    }
 }
