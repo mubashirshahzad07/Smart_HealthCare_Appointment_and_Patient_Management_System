@@ -18,9 +18,9 @@ public class DoctorScheduleService {
         }
     }
 
-    public void updateDoctorSchedule(String doctorId, DoctorSchedule.Day startDay, DoctorSchedule.Day endDay, DoctorSchedule.Shift shift) {
+    public void updateDoctorSchedule(String doctorId, DoctorSchedule.Day startDay, DoctorSchedule.Day endDay, DoctorSchedule.Shift shift, double fee) {
         try {
-            doctorScheduleDAO.updateDoctorSchedule(doctorId, startDay, endDay, shift);
+            doctorScheduleDAO.updateDoctorSchedule(doctorId, startDay, endDay, shift, fee);
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

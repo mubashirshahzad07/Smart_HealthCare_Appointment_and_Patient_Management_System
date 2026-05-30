@@ -1,0 +1,44 @@
+[
+  {
+    "userId": "U001",
+    "username": "admin",
+    "name": "Admin User",
+    "password": "admin123",
+    "role": "ADMIN"
+  },
+  {
+    "userId": "U002",
+    "username": "receptionist",
+    "name": "Ayesha Khan",
+    "password": "recep123",
+    "role": "RECEPTIONIST"
+  },
+  {
+    "userId": "U003",
+    "username": "doctor",
+    "name": "Dr. Ahmed",
+    "password": "doc123",
+    "role": "DOCTOR"
+  },
+  {
+    "userId": "U004",
+    "username": "red_team",
+    "name": "Red Emergency Team",
+    "password": "red123",
+    "role": "EMERGENCY_TEAM"
+  },
+  {
+    "userId": "U005",
+    "username": "yellow_team",
+    "name": "Yellow Emergency Team",
+    "password": "yellow123",
+    "role": "EMERGENCY_TEAM"
+  },
+  {
+    "userId": "U006",
+    "username": "green_team",
+    "name": "Green Emergency Team",
+    "password": "green123",
+    "role": "EMERGENCY_TEAM"
+  }
+]

@@ -246,7 +246,6 @@ public class LoginFrame extends JFrame {
 
         try {
             LoginService loginService = new LoginService();
-
             loggedInUser = loginService.login( username, password, selectedRole.toString());
 
         } catch (RuntimeException e) {
