@@ -5,6 +5,7 @@ import patient.management.system.dto.DoctorAvailabilityDTO;
 import patient.management.system.dto.DoctorDTO;
 import patient.management.system.model.Appointment;
 import patient.management.system.model.DoctorSchedule;
+import patient.management.system.dto.AppointmentReportDTO;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -659,5 +660,57 @@ public class AppointmentDAO {
                 })
                 .map(appointment -> mapper.convertValue(appointment, AppointmentDTO.class))
                 .toList();
+    }
+
+    public List<AppointmentReportDTO> getAppointmentReports() {
+
+        List<DoctorDTO> doctors = doctorDAO.getAllDoctors();
+        List<Appointment> appointments = getAppointmentsInternal();
+        List<Appointment> cancelledAppointments = getCancelledAppointmentsInternal();
+        List<Appointment> rescheduledAppointments = getRescheduledAppointmentsInternal();
+
+        ArrayList<AppointmentReportDTO> reports = new ArrayList<>();
+
+        for (DoctorDTO doctor : doctors) {
+            String doctorId = doctor.getDoctorId();
+            int booked = 0;
+            int completed = 0;
+            int cancelled = 0;
+            int rescheduled = 0;
+
+            for (Appointment appointment : appointments) {
+                if (doctorId.equals(appointment.getDoctorId())) {
+                    booked++;
+
+                    if (Appointment.Status.COMPLETED.toString().equals(appointment.getStatus())) {
+                        completed++;
+                    }
+                }
+            }
+
+            for (Appointment appointment : cancelledAppointments) {
+
+                if (doctorId.equals(appointment.getDoctorId())) {
+                    cancelled++;
+                }
+            }
+
+            for (Appointment appointment : rescheduledAppointments) {
+                if (doctorId.equals(appointment.getDoctorId())) {
+                    rescheduled++;
+                }
+            }
+
+            reports.add(
+                    new AppointmentReportDTO(
+                            doctorId,
+                            doctor.getName(),
+                            booked + cancelled,
+                            completed,
+                            cancelled,
+                            rescheduled));
+        }
+
+        return reports;
     }
 }

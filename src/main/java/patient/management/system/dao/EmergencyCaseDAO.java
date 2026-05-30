@@ -3,6 +3,7 @@ package patient.management.system.dao;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import patient.management.system.dto.EmergencyCaseDTO;
+import patient.management.system.dto.EmergencyReportDTO;
 import patient.management.system.model.EmergencyCase;
 import patient.management.system.model.TriageColor;
 
@@ -276,5 +277,36 @@ public class EmergencyCaseDAO {
                     return matchesName || matchesCNIC || matchesTempId || matchesCaseId;
                 })
                 .toList();
+    }
+
+    public List<EmergencyReportDTO> getEmergencyReport() {
+
+        List<EmergencyCaseDTO> cases = getEmergencyCases();
+        List<EmergencyReportDTO> report = new ArrayList<>();
+
+        for (TriageColor triageColor : TriageColor.values()) {
+
+            List<EmergencyCaseDTO> colorCases = cases.stream()
+                    .filter(c -> c.getTriageColor().equalsIgnoreCase(triageColor.name()))
+                    .toList();
+
+            int totalCases = colorCases.size();
+
+            int completed = (int) colorCases.stream()
+                    .filter(c -> "COMPLETE".equalsIgnoreCase(c.getStatus()))
+                    .count();
+
+            int movedToICU = (int) colorCases.stream()
+                    .filter(c -> "moved to icu".equalsIgnoreCase(c.getFinalOutcome()))
+                    .count();
+
+            int deceased = (int) colorCases.stream()
+                    .filter(c -> "DECEASED".equalsIgnoreCase(c.getFinalOutcome()))
+                    .count();
+
+            report.add(new EmergencyReportDTO(triageColor.name(), totalCases, completed, movedToICU, deceased));
+        }
+
+        return report;
     }
 }

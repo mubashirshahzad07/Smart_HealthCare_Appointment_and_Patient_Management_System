@@ -229,4 +229,20 @@ public class AdminService {
     public int getTotalPatientsCount() {
         return patientDAO.getPatients().size();
     }
+
+    public List<AppointmentReportDTO> getAppointmentReports() {
+        try {
+            return appointmentDAO.getAppointmentReports();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<EmergencyReportDTO> getEmergencyReport() {
+        try {
+            return emergencyCaseDAO.getEmergencyReport();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 }
