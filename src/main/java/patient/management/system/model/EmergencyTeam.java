@@ -9,6 +9,8 @@ public class EmergencyTeam extends User {
     private String teamId;
     private TriageColor triageColor;
 
+    public EmergencyTeam() {}
+
     public EmergencyTeam(TriageColor triageColor, String username, String password, String name) {
         super(username, name, password, Role.EMERGENCY_TEAM);
         this.teamId = IdDAO.getEmergencyTeamId();

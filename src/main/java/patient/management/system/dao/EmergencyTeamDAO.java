@@ -40,7 +40,7 @@ public class EmergencyTeamDAO {
                     });
 
         } catch (IOException e) {
-            throw new RuntimeException("Unable to load emergency teams.");
+            throw new RuntimeException("Unable to load emergency teams from { getEmergencyTeamsInternal }.");
         }
     }
 
