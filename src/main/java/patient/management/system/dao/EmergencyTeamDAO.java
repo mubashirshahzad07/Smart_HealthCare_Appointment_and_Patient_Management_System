@@ -16,9 +16,17 @@ public class EmergencyTeamDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final File emergencyTeamFile = new File("data/emergency_teams.json");
 
+    public static void main(String[] args) {
+        new EmergencyTeamDAO().addEmergencyTeam("green_team", "Green Emergency Team", "green123", TriageColor.GREEN);
+    }
+
     public void addEmergencyTeam(String username, String name, String password, TriageColor triageColor) {
         ArrayList<EmergencyTeam> emergencyTeams = getEmergencyTeamsInternal();
-        emergencyTeams.add(new EmergencyTeam(triageColor, username, password, name));
+        usernameAvailable(emergencyTeams, username);
+
+        EmergencyTeam newEmergencyTeam = new EmergencyTeam(triageColor, username, password, name);
+        new LoginDAO().addUser(newEmergencyTeam.getUserId(), username, password, name, Role.EMERGENCY_TEAM);
+        emergencyTeams.add(newEmergencyTeam);
 
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(emergencyTeamFile, emergencyTeams);
@@ -72,5 +80,13 @@ public class EmergencyTeamDAO {
         }
 
         throw new RuntimeException("No team with given userId or username exists.");
+    }
+
+    private void usernameAvailable(ArrayList<EmergencyTeam> teams, String username) {
+        for (EmergencyTeam team : teams) {
+            if (team.getUsername().equals(username)) {
+                throw new RuntimeException("Username not available.");
+            }
+        }
     }
 }

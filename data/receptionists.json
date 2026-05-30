@@ -1,0 +1,8 @@
+[ {
+  "userId" : "USR0001",
+  "username" : "receptionist",
+  "name" : "Ayesha Khan",
+  "receptionistId" : "RECPT0001",
+  "shift" : "EVENING",
+  "isActive" : true
+} ]

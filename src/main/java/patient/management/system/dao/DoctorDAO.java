@@ -2,6 +2,7 @@ package patient.management.system.dao;
 
 import patient.management.system.dto.DoctorDTO;
 import patient.management.system.model.Doctor;
+import patient.management.system.model.Role;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ public class DoctorDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final File file = new File("data/doctors.json");
 
+
     public void addDoctor(
             String username, String password, String doctorName,
             double appointmentFee, Doctor.Specialization specialization) {
@@ -23,7 +25,7 @@ public class DoctorDAO {
         usernameAvailable(doctors, username);
 
         Doctor newDoctor = new Doctor(username, password, doctorName, appointmentFee, specialization);
-
+        new LoginDAO().addUser(newDoctor.getUserId(), username, password, doctorName, Role.DOCTOR);
         doctors.add(newDoctor);
 
         try {

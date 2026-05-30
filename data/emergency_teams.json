@@ -1,23 +1,19 @@
-[
-  {
-    "userId": "U004",
-    "username": "red_team",
-    "name": "Red Emergency Team",
-    "triageColor": "RED",
-    "teamId": "ET0001"
-  },
-  {
-    "userId": "U005",
-    "username": "yellow_team",
-    "name": "Yellow Emergency Team",
-    "triageColor": "YELLOW",
-    "teamId": "ET0002"
-  },
-  {
-    "userId": "U006",
-    "username": "green_team",
-    "name": "Green Emergency Team",
-    "triageColor": "GREEN",
-    "teamId": "ET0003"
-  }
-]
+[ {
+  "userId" : "USR0004",
+  "username" : "red_team",
+  "name" : "Red Emergency Team",
+  "teamId" : "EMT0001",
+  "triageColor" : "RED"
+}, {
+  "userId" : "USR0005",
+  "username" : "yellow_team",
+  "name" : "Yellow Emergency Team",
+  "teamId" : "EMT0002",
+  "triageColor" : "YELLOW"
+}, {
+  "userId" : "USR0006",
+  "username" : "green_team",
+  "name" : "Green Emergency Team",
+  "teamId" : "EMT0003",
+  "triageColor" : "GREEN"
+} ]

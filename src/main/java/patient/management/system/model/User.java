@@ -1,6 +1,7 @@
 package patient.management.system.model;
 
 import patient.management.system.dao.IdDAO;
+import patient.management.system.dao.LoginDAO;
 
 public class User {
     private String userId;
@@ -13,6 +14,14 @@ public class User {
 
     public User(String username, String name, String password, Role role) {
         this.userId = IdDAO.getUserId();
+        this.username = username;
+        this.password = password;
+        this.name = name;
+        this.role = role;
+    }
+
+    public User(String userId, String username, String name, String password, Role role) {
+        this.userId = userId;
         this.username = username;
         this.password = password;
         this.name = name;

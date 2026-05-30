@@ -6,7 +6,6 @@ import patient.management.system.dao.IdDAO;
 @JsonIgnoreProperties({ "password", "role" })
 public class Receptionist extends User {
     private String receptionistId;
-    private String name;
     private Shift shift;
     private boolean isActive;
 
@@ -24,10 +23,6 @@ public class Receptionist extends User {
         this.shift = shift;
         this.receptionistId = IdDAO.getReceptionistId();
         this.isActive = true;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getReceptionistId() {

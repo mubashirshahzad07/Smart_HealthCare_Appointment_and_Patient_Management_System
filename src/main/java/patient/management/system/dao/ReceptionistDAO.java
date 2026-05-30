@@ -5,6 +5,7 @@ import patient.management.system.dto.ReceptionistDTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import patient.management.system.model.Receptionist;
+import patient.management.system.model.Role;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,10 +16,13 @@ public class ReceptionistDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final File file = new File("data/receptionists.json");
 
-    public void addReceptionist(String username, String password, String name, Receptionist.Shift shift) {
-        Receptionist newReceptionist = new Receptionist(username, password, name, shift);
 
+    public void addReceptionist(String username, String password, String name, Receptionist.Shift shift) {
         ArrayList<Receptionist> receptionists = getActiveReceptionistsInternal();
+        usernameAvailable(receptionists, username);
+
+        Receptionist newReceptionist = new Receptionist(username, password, name, shift);
+        new LoginDAO().addUser(newReceptionist.getUserId(), username, password, name, Role.RECEPTIONIST);
         receptionists.add(newReceptionist);
 
         try {
@@ -151,5 +155,13 @@ public class ReceptionistDAO {
         }
 
         throw new RuntimeException("Receptionist is unregistered or inactive.");
+    }
+
+    public void usernameAvailable(ArrayList<Receptionist> receptionists, String username) {
+        for (Receptionist receptionist : receptionists) {
+            if (receptionist.getUsername().equals(username)) {
+                throw new RuntimeException("Username not available.");
+            }
+        }
     }
 }

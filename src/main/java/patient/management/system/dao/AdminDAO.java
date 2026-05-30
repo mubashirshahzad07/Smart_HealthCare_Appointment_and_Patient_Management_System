@@ -3,6 +3,7 @@ package patient.management.system.dao;
 import com.fasterxml.jackson.core.type.TypeReference;
 import patient.management.system.dto.AdminDTO;
 import patient.management.system.model.Admin;
+import patient.management.system.model.Role;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,9 +16,12 @@ public class AdminDAO {
     private final File file = new File("data/admins.json");
 
     public void addAdmin(String name, String username, String password) {
-        Admin newAdmin = new Admin(name, username, password);
 
         ArrayList<Admin> admins = getAdminsInternal();
+        usernameAvailable(admins, username);
+
+        Admin newAdmin = new Admin(name, username, password);
+        new LoginDAO().addUser(newAdmin.getUserId(), username, password, name, Role.ADMIN);
         admins.add(newAdmin);
 
         try {
@@ -59,6 +63,14 @@ public class AdminDAO {
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load Admins data.");
+        }
+    }
+
+    private void usernameAvailable(ArrayList<Admin> admins, String username) {
+        for (Admin admin : admins) {
+            if (admin.getUsername().equals(username)) {
+                throw new RuntimeException("Username not available.");
+            }
         }
     }
 }

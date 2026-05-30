@@ -9,8 +9,25 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LoginDAO {
-    private ArrayList<User> getUsersInternal() {
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final File file = new File("data/users.json");
 
+    public void addUser(String userId, String username, String password, String name, Role role) {
+        ArrayList<User> users = getUsersInternal();
+
+        User newUser = new User(userId, username, name, password, role);
+
+        users.add(newUser);
+
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(file, users);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to register user.");
+        }
+    }
+
+    private ArrayList<User> getUsersInternal() {
+    
     try {
         File usersFile = new File("data/users.json");
 
