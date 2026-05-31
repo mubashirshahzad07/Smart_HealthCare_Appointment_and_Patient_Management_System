@@ -7,12 +7,37 @@ import io.github.cdimascio.dotenv.Dotenv;
 import java.util.Properties;
 
 public class NotificationDAO {
+    public static final String REMINDER_MESSAGE = """
+            Reminder: You have an appointment scheduled for tomorrow.
 
+            Please arrive 10–15 minutes early. If you are unable to attend, kindly contact us as soon as possible to reschedule or cancel your appointment. \
+
+            Thank you.
+            """;
+
+    public static final String RESCHEDULE_CONFIRMATION = """
+            Your appointment has been successfully rescheduled.
+
+            If you have any questions or need to make further changes, please contact us.
+
+            Thank you.
+            """;
+
+    public static final String CANCEL_CONFIRMATION = """
+            Your appointment has been successfully cancelled.
+
+            If you would like to schedule a new appointment in the future, please contact us.
+
+            Thank you.
+            """;
+                    
     /**
      * sends email given the recipient addresses
-     * @param to recipient addresses (format: "email(1), email(2), email(3), ... , email(n)")
+     * 
+     * @param to recipient addresses (format: "email(1), email(2), email(3), ... ,
+     *           email(n)")
      */
-    public static void sendEmail(String to) {
+    public static void sendEmail(String to, String notficationMessage) {
         if (!isValidEmail(to)) {
             throw new RuntimeException("Email address is not valid.");
         }
@@ -41,7 +66,7 @@ public class NotificationDAO {
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(to));
             message.setSubject("Hello");
-            message.setText("This is test email.");
+            message.setText(notficationMessage);
             Transport.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -50,7 +75,9 @@ public class NotificationDAO {
 
     /**
      * checks if the emails are valid
-     * @param to recipient addresses (format: "email(1), email(2), email(3), ... , email(n)")
+     * 
+     * @param to recipient addresses (format: "email(1), email(2), email(3), ... ,
+     *           email(n)")
      * @return true if emails are valid, false otherwise
      */
     public static boolean isValidEmail(String to) {

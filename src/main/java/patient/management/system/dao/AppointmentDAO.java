@@ -393,6 +393,8 @@ public class AppointmentDAO {
             throw new RuntimeException("Unable to cancel appointment.");
         }
 
+        String patientEmail = patientDAO.getEmail(targetAppointment.getPatientId()).get();
+        NotificationDAO.sendEmail(patientEmail, NotificationDAO.CANCEL_CONFIRMATION);
         setNetAmountCollected(-refund);
         incrementTotalRefundsCount();
     }
@@ -458,6 +460,8 @@ public class AppointmentDAO {
             throw new RuntimeException("Failed to reschedule appointment.");
         }
 
+        String patientEmail = patientDAO.getEmail(targetAppointment.getPatientId()).get();
+        NotificationDAO.sendEmail(patientEmail, NotificationDAO.RESCHEDULE_CONFIRMATION);
         medicalRecordDAO.resheduleMedicalRecord(appointmentId, doctorName);
     }
 
