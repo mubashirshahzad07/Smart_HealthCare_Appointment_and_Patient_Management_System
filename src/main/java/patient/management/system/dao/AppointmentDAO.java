@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class AppointmentDAO {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -739,5 +740,20 @@ public class AppointmentDAO {
                 .filter(appointment -> LocalDate.parse(appointment.getAppointmentDate()).equals(LocalDate.now()))
                 .filter(appointment -> appointment.getStatus().equalsIgnoreCase("COMPLETED"))
                 .count();
+    }
+
+    public String emailsToNotify() {
+
+        List<String> toEmails = getAppointmentsInternal()
+                .stream()
+                .filter(appointment -> !LocalDate.parse(appointment.getAppointmentDate()).isBefore(LocalDate.now()))
+                .filter(appointment -> !LocalDate.parse(appointment.getAppointmentDate()).isAfter(LocalDate.now().plusDays(1)))
+                .filter(appointment -> !LocalDate.parse(appointment.getAppointmentDate()).equals(LocalDate.now()))
+                .map(appointment -> patientDAO.getEmail(appointment.getPatientId()))
+                .filter(email -> !email.isEmpty())
+                .map(email -> email.get())
+                .toList();
+
+        return String.join(", ", toEmails);
     }
 }

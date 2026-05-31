@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class PatientDAO {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -110,5 +111,13 @@ public class PatientDAO {
                     }
                 })
                 .toList();
+    }
+
+    public Optional<String> getEmail(String patientId) {
+        return getPatients()
+            .stream()
+            .filter(patient -> patientId.equals(patient.getPatientId()))
+            .map(patient -> patient.getEmail())
+            .findFirst();
     }
 }

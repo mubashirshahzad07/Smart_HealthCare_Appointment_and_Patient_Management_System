@@ -2,10 +2,12 @@ package patient.management.system.dao;
 
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
-import java.util.Properties;
 import io.github.cdimascio.dotenv.Dotenv;
 
+import java.util.Properties;
+
 public class NotificationDAO {
+
     /**
      * sends email given the recipient addresses
      * @param to recipient addresses (format: "email(1), email(2), email(3), ... , email(n)")
