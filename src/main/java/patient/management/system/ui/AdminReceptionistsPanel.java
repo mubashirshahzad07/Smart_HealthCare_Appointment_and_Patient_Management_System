@@ -42,17 +42,17 @@ public class AdminReceptionistsPanel extends JPanel {
 
         JButton addButton = AdminUI.actionButton("Add Receptionist", AdminUI.GREEN);
         JButton updateButton = AdminUI.actionButton("Update Shift", AdminUI.ORANGE);
-        JButton removeButton = AdminUI.actionButton("Remove Receptionist", AdminUI.RED);
+        JButton deactivateButton = AdminUI.actionButton("Deactivate Receptionist", AdminUI.RED);
         JButton clearButton = AdminUI.actionButton("Clear", AdminUI.BLUE);
 
         addButton.addActionListener(event -> openAddReceptionistForm());
         updateButton.addActionListener(event -> updateSelectedReceptionist(table));
-        removeButton.addActionListener(event -> removeSelectedReceptionist(table));
+        deactivateButton.addActionListener(event -> deactivateSelectedReceptionist(table));
         clearButton.addActionListener(event -> table.clearSelection());
 
         panel.add(AdminUI.searchBar("Search receptionist by name or ID", table, 0, 1), BorderLayout.BEFORE_FIRST_LINE);
         panel.add(AdminUI.tableCard(table), BorderLayout.CENTER);
-        panel.add(AdminUI.buttonBar(addButton, updateButton, removeButton, clearButton), BorderLayout.SOUTH);
+        panel.add(AdminUI.buttonBar(addButton, updateButton, deactivateButton, clearButton), BorderLayout.SOUTH);
         add(panel, BorderLayout.CENTER);
     }
 
@@ -156,18 +156,18 @@ public class AdminReceptionistsPanel extends JPanel {
         dialog.setVisible(true);
     }
 
-    private void removeSelectedReceptionist(JTable table) {
+    private void deactivateSelectedReceptionist(JTable table) {
         int row = table.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Please select a receptionist row to remove.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a receptionist row to deactivate.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
         int modelRow = table.convertRowIndexToModel(row);
         String name = receptionistModel.getValueAt(modelRow, 1).toString();
-        int confirm = JOptionPane.showConfirmDialog(this, "Remove " + name + "?", "Confirm Remove", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Deactivate " + name + "?", "Confirm Deactivation", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            receptionistModel.removeRow(modelRow);
-            JOptionPane.showMessageDialog(this, "Receptionist removed successfully.");
+            receptionistModel.setValueAt("Inactive", modelRow, 4);
+            JOptionPane.showMessageDialog(this, "Receptionist deactivated successfully.");
         }
     }
 }
