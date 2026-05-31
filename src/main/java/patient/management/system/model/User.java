@@ -1,7 +1,6 @@
 package patient.management.system.model;
 
 import patient.management.system.dao.IdDAO;
-import patient.management.system.dao.LoginDAO;
 
 public class User {
     private String userId;

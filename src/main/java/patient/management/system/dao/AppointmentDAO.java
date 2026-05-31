@@ -22,6 +22,7 @@ public class AppointmentDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final PatientDAO patientDAO = new PatientDAO();
     private final DoctorDAO doctorDAO = new DoctorDAO();
+    private final MedicalRecordDAO medicalRecordDAO = new MedicalRecordDAO();
     private final DoctorScheduleDAO scheduleDAO = new DoctorScheduleDAO();
     private final File appointmentsFile = new File("data/appointments.json");
     private final File cancelledAppointmentsFile = new File("data/cancelled_appointments.json");
@@ -31,25 +32,30 @@ public class AppointmentDAO {
     private final String totalRefundsFilePath = "data/total_refunds.json";
 
     public void addAppointment(
-            int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
-            String patientId, String doctorId, String receptionistId, String patientDescription,
-            Appointment.Status status, boolean willingToReschedule, String patientName, String doctorName) {
+        int appointmentYear, int appointmentMonth, int appointmentDay, int appointmentHour,
+        String patientId, String doctorId, String receptionistId, String patientDescription,
+        Appointment.Status status, boolean willingToReschedule, String patientName, String doctorName) {
 
         patientDAO.patientRegistered(patientId);
 
         ArrayList<Appointment> appointments = getAppointmentsInternal();
         slotAvailable(
-                appointments,
-                String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
-                appointmentHour, doctorId);
+            appointments,
+            String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
+            appointmentHour, doctorId);
 
         Appointment newAppointment = new Appointment(
-                appointmentYear, appointmentMonth,
-                appointmentDay, appointmentHour,
-                patientId, doctorId, receptionistId,
-                patientDescription, status, willingToReschedule, doctorName, patientName);
+            appointmentYear, appointmentMonth,
+            appointmentDay, appointmentHour,
+            patientId, doctorId, receptionistId,
+            patientDescription, status, willingToReschedule, doctorName, patientName);
 
         appointments.add(newAppointment);
+        medicalRecordDAO.addRegularMedicalRecord(
+            newAppointment.getAppointmentId(), 
+            patientId,
+            newAppointment.getDoctorName()
+        );
 
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(appointmentsFile, appointments);
@@ -182,9 +188,9 @@ public class AppointmentDAO {
             }
 
             return mapper.readValue(
-                    appointmentsFile,
-                    new TypeReference<ArrayList<Appointment>>() {
-                    });
+                appointmentsFile,
+                new TypeReference<ArrayList<Appointment>>() {
+                });
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load appointments data.");
@@ -211,8 +217,8 @@ public class AppointmentDAO {
 
         for (Appointment appointment : appointments) {
             boolean slotOccupied = (appointment.getAppointmentDate().equals(appointmentDate))
-                    && (appointmentHour == appointment.getAppointmentHour())
-                    && (doctorId.equals(appointment.getDoctorId()));
+            && (appointmentHour == appointment.getAppointmentHour())
+            && (doctorId.equals(appointment.getDoctorId()));
 
             if (slotOccupied) {
                 throw new RuntimeException("Selected slot is not available.");
@@ -230,12 +236,12 @@ public class AppointmentDAO {
         for (Appointment appointment : appointments) {
 
             LocalDateTime appointmentStart = LocalDate.parse(appointment.getAppointmentDate())
-                    .atTime(appointment.getAppointmentHour(), 0);
+            .atTime(appointment.getAppointmentHour(), 0);
             LocalDateTime appointmentEnd = appointmentStart.plusHours(1);
 
             boolean isCompleted = !CURRENT_DATE_TIME.isBefore(appointmentEnd);
             boolean isInProgress = !CURRENT_DATE_TIME.isBefore(appointmentStart)
-                    && CURRENT_DATE_TIME.isBefore(appointmentEnd);
+            && CURRENT_DATE_TIME.isBefore(appointmentEnd);
 
             if (isCompleted) {
                 appointment.setStatus(Appointment.Status.COMPLETED);
@@ -260,9 +266,9 @@ public class AppointmentDAO {
             }
 
             return mapper.readValue(
-                    appointmentsFile,
-                    new TypeReference<List<AppointmentDTO>>() {
-                    });
+                appointmentsFile,
+                new TypeReference<List<AppointmentDTO>>() {
+                });
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load appointments data.");
@@ -277,9 +283,9 @@ public class AppointmentDAO {
             }
 
             return mapper.readValue(
-                    rescheduledAppointmentsFile,
-                    new TypeReference<ArrayList<Appointment>>() {
-                    });
+                rescheduledAppointmentsFile,
+                new TypeReference<ArrayList<Appointment>>() {
+                });
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load rescheduled appointments data.");
@@ -295,9 +301,9 @@ public class AppointmentDAO {
             }
 
             return mapper.readValue(
-                    rescheduledAppointmentsFile,
-                    new TypeReference<List<AppointmentDTO>>() {
-                    });
+                rescheduledAppointmentsFile,
+                new TypeReference<List<AppointmentDTO>>() {
+                });
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load rescheduled appointments data.");
@@ -313,9 +319,9 @@ public class AppointmentDAO {
             }
 
             return mapper.readValue(
-                    cancelledAppointmentsFile,
-                    new TypeReference<ArrayList<Appointment>>() {
-                    });
+                cancelledAppointmentsFile,
+                new TypeReference<ArrayList<Appointment>>() {
+                });
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load cancelled appointments data.");
@@ -331,9 +337,9 @@ public class AppointmentDAO {
             }
 
             return mapper.readValue(
-                    cancelledAppointmentsFile,
-                    new TypeReference<List<AppointmentDTO>>() {
-                    });
+                cancelledAppointmentsFile,
+                new TypeReference<List<AppointmentDTO>>() {
+                });
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load cancelled appointments data.");
@@ -366,7 +372,7 @@ public class AppointmentDAO {
         }
 
         boolean cancellable = targetAppointment.getStatus().equals(Appointment.Status.SCHEDULED.toString())
-                || targetAppointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
+        || targetAppointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
 
         if (!cancellable) {
             throw new RuntimeException("Appointment cannot be cancelled.");
@@ -396,9 +402,9 @@ public class AppointmentDAO {
      * reschedule are rescheduled
      */
     public void rescheduleAppointment(
-            String appointmentId, int appointmentYear, int appointmentMonth,
-            int appointmentDay, int appointmentHour, String doctorId,
-            boolean willingToReschedule, String patientDescription, String doctorName) {
+        String appointmentId, int appointmentYear, int appointmentMonth,
+        int appointmentDay, int appointmentHour, String doctorId,
+        boolean willingToReschedule, String patientDescription, String doctorName) {
 
         ArrayList<Appointment> appointments = getAppointmentsInternal();
         ArrayList<Appointment> rescheduledAppointments = getRescheduledAppointmentsInternal();
@@ -418,7 +424,7 @@ public class AppointmentDAO {
         }
 
         boolean reschedulable = targetAppointment.getStatus().equals(Appointment.Status.SCHEDULED.toString())
-                || targetAppointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
+        || targetAppointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
 
         if (!reschedulable) {
             throw new RuntimeException("Appointment cannot be rescheduled.");
@@ -431,9 +437,9 @@ public class AppointmentDAO {
         appointments.remove(targetAppointment);
 
         slotAvailable(
-                appointments,
-                String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
-                appointmentHour, doctorId);
+            appointments,
+            String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
+            appointmentHour, doctorId);
 
         targetAppointment.setAppointmentDate(String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay));
         targetAppointment.setAppointmentHour(appointmentHour);
@@ -449,12 +455,14 @@ public class AppointmentDAO {
             mapper.writerWithDefaultPrettyPrinter().writeValue(appointmentsFile, appointments);
             mapper.writerWithDefaultPrettyPrinter().writeValue(rescheduledAppointmentsFile, rescheduledAppointments);
         } catch (IOException e) {
-            throw new RuntimeException("Unable to reschedule appointment.");
+            throw new RuntimeException("Failed to reschedule appointment.");
         }
+
+        medicalRecordDAO.resheduleMedicalRecord(appointmentId, doctorName);
     }
 
     private void rescheduleFollowingAppointments(ArrayList<Appointment> appointments, String vacantDate, int vacantHour,
-            String doctorId) {
+        String doctorId) {
 
         while (true) {
             Appointment closestAppointment = null;
@@ -467,10 +475,10 @@ public class AppointmentDAO {
                 boolean isWilling = appointment.getWillingToReschedule();
 
                 boolean validStatus = appointment.getStatus().equals(Appointment.Status.SCHEDULED.toString())
-                        || appointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
+                || appointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
 
                 LocalDateTime appointmentDateTime = LocalDate.parse(appointment.getAppointmentDate())
-                        .atTime(appointment.getAppointmentHour(), 0);
+                .atTime(appointment.getAppointmentHour(), 0);
 
                 boolean afterVacancy = appointmentDateTime.isAfter(vacantDateTime);
 
@@ -540,7 +548,7 @@ public class AppointmentDAO {
             for (Appointment appointment : appointments) {
 
                 boolean appointmentMatches = appointment.getDoctorId().equals(doctor.getDoctorId())
-                        && appointment.getAppointmentDate().equals(appointmentDate);
+                && appointment.getAppointmentDate().equals(appointmentDate);
 
                 if (appointmentMatches) {
 
@@ -549,12 +557,12 @@ public class AppointmentDAO {
             }
 
             result.add(
-                    new DoctorAvailabilityDTO(
-                            doctor.getDoctorId(),
-                            doctor.getName(),
-                            doctor.getSpecialization(),
-                            doctor.getAppointmentFee(),
-                            freeSlots));
+                new DoctorAvailabilityDTO(
+                    doctor.getDoctorId(),
+                    doctor.getName(),
+                    doctor.getSpecialization(),
+                    doctor.getAppointmentFee(),
+                    freeSlots));
         }
 
         return result;
@@ -600,8 +608,8 @@ public class AppointmentDAO {
             for (Appointment appointment : appointments) {
 
                 boolean appointmentMatches = 
-                        appointment.getDoctorId().equals(doctorId)
-                        && appointment.getAppointmentDate().equals(formattedDate);
+                appointment.getDoctorId().equals(doctorId)
+                && appointment.getAppointmentDate().equals(formattedDate);
 
                 if (appointmentMatches) {
                     freeSlots.remove(Integer.valueOf(appointment.getAppointmentHour()));
@@ -621,9 +629,9 @@ public class AppointmentDAO {
         String today = LocalDate.now().toString();
 
         return (int) getAppointmentsInternal()
-                .stream()
-                .filter(appointment -> appointment.getAppointmentDate().equals(today))
-                .count();
+        .stream()
+        .filter(appointment -> appointment.getAppointmentDate().equals(today))
+        .count();
     }
 
     public int getUpcomingAppointmentsCount() {
@@ -631,11 +639,11 @@ public class AppointmentDAO {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         return (int) getAppointmentsInternal()
-                .stream()
-                .filter(appointment -> LocalDate.parse(appointment.getAppointmentDate())
-                        .atTime(appointment.getAppointmentHour(), 0)
-                        .isAfter(currentDateTime))
-                .count();
+        .stream()
+        .filter(appointment -> LocalDate.parse(appointment.getAppointmentDate())
+            .atTime(appointment.getAppointmentHour(), 0)
+            .isAfter(currentDateTime))
+        .count();
     }
 
     public List<AppointmentDTO> searchAppointments(String query) {
@@ -643,17 +651,17 @@ public class AppointmentDAO {
         String lowerQuery = query.toLowerCase();
 
         return appointments.stream()
-                .filter(appointment -> {
-                    boolean matchesAppointmentId = appointment.getAppointmentId() != null && appointment.getAppointmentId().toLowerCase().contains(lowerQuery);
-                    boolean matchesDoctor = appointment.getDoctorId() != null && appointment.getDoctorId().toLowerCase().contains(lowerQuery);
-                    boolean matchesPatient = appointment.getPatientId() != null && appointment.getPatientId().toLowerCase().contains(lowerQuery);
-                    boolean matchesDate = appointment.getAppointmentDate() != null && appointment.getAppointmentDate().contains(lowerQuery);
-                    boolean matchesDateTime = (String.format("%d",appointment.getAppointmentHour())).toLowerCase().contains(lowerQuery);
+        .filter(appointment -> {
+            boolean matchesAppointmentId = appointment.getAppointmentId() != null && appointment.getAppointmentId().toLowerCase().contains(lowerQuery);
+            boolean matchesDoctor = appointment.getDoctorId() != null && appointment.getDoctorId().toLowerCase().contains(lowerQuery);
+            boolean matchesPatient = appointment.getPatientId() != null && appointment.getPatientId().toLowerCase().contains(lowerQuery);
+            boolean matchesDate = appointment.getAppointmentDate() != null && appointment.getAppointmentDate().contains(lowerQuery);
+            boolean matchesDateTime = (String.format("%d",appointment.getAppointmentHour())).toLowerCase().contains(lowerQuery);
 
-                    return matchesAppointmentId || matchesDoctor || matchesPatient || matchesDate || matchesDateTime;
-                })
-                .map(appointment -> mapper.convertValue(appointment, AppointmentDTO.class))
-                .toList();
+            return matchesAppointmentId || matchesDoctor || matchesPatient || matchesDate || matchesDateTime;
+        })
+        .map(appointment -> mapper.convertValue(appointment, AppointmentDTO.class))
+        .toList();
     }
 
     public List<AppointmentReportDTO> getAppointmentReports() {
@@ -696,15 +704,40 @@ public class AppointmentDAO {
             }
 
             reports.add(
-                    new AppointmentReportDTO(
-                            doctorId,
-                            doctor.getName(),
-                            booked + cancelled,
-                            completed,
-                            cancelled,
-                            rescheduled));
+                new AppointmentReportDTO(
+                    doctorId,
+                    doctor.getName(),
+                    booked + cancelled,
+                    completed,
+                    cancelled,
+                    rescheduled));
         }
 
         return reports;
+    }
+
+    public int getAppointmentsTodayCount(String doctorName) {
+        return (int) getAppointmentsInternal()
+                .stream()
+                .filter(appointment -> doctorName.equalsIgnoreCase(appointment.getDoctorName()))
+                .filter(appointment -> LocalDate.parse(appointment.getAppointmentDate()).equals(LocalDate.now()))
+                .count();
+    }
+
+    public int getUpcomingAppointmentsCount(String doctorName) {
+        return (int) getAppointmentsInternal()
+                .stream()
+                .filter(appointment -> doctorName.equalsIgnoreCase(appointment.getDoctorName()))
+                .filter(appointment -> appointment.getStatus().equalsIgnoreCase("SCHEDULED") || appointment.getStatus().equalsIgnoreCase("RESCHEDULED"))
+                .count();
+    }
+
+    public int getCompletedTodayCount(String doctorName) {
+        return (int) getAppointmentsInternal()
+                .stream()
+                .filter(appointment -> doctorName.equalsIgnoreCase(appointment.getDoctorName()))
+                .filter(appointment -> LocalDate.parse(appointment.getAppointmentDate()).equals(LocalDate.now()))
+                .filter(appointment -> appointment.getStatus().equalsIgnoreCase("COMPLETED"))
+                .count();
     }
 }

@@ -207,6 +207,7 @@ public class EmergencyCaseDAO {
 
         for (EmergencyCase emergencyCase : emergencyCases) {
             if (emergencyCase.getEmergencyCaseId().equals(emergencyCaseId)) {
+
                 emergencyCase.setStatus(EmergencyCase.Status.COMPLETE);
                 emergencyCase.setFinalOutcome(finalOutcome);
 

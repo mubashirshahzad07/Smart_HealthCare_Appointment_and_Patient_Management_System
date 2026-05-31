@@ -129,6 +129,8 @@ public class ReceptionistDAO {
                     throw new RuntimeException("Unable to activate receptionist.");
                 }
 
+                return;
+
             }
         }
 
@@ -151,6 +153,7 @@ public class ReceptionistDAO {
                     throw new RuntimeException("Unable to activate receptionist.");
                 }
 
+                return;
             }
         }
 
@@ -162,6 +165,31 @@ public class ReceptionistDAO {
             if (receptionist.getUsername().equals(username)) {
                 throw new RuntimeException("Username not available.");
             }
+        }
+    }
+
+    public Receptionist getReceptionistByUserId(String userId) {
+
+        try {
+            if (!file.exists() || file.length() == 0) {
+                throw new RuntimeException("Receptionist not found.");
+            }
+
+            ArrayList<Receptionist> receptionists = mapper.readValue(
+                    file,
+                    new TypeReference<ArrayList<Receptionist>>() {
+                    });
+
+            for (Receptionist receptionist : receptionists) {
+                if (receptionist.getUserId().equals(userId)) {
+                    return receptionist;
+                }
+            }
+
+            throw new RuntimeException("Receptionist not found.");
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load receptionists data.");
         }
     }
 }

@@ -1,7 +1,6 @@
 package patient.management.system.model;
 
 import patient.management.system.dao.IdDAO;
-import patient.management.system.service.EmailService;
 
 public class Patient {
     private String patientId;
@@ -22,12 +21,6 @@ public class Patient {
         this.age = age;
         this.name = name;
         this.cnic = cnic;
-
-        if (EmailService.isValidEmail(email)) {
-            this.email = email;
-        } else {
-            throw new RuntimeException("Invalid email.");
-        }
     }
 
     public String getPatientId() {

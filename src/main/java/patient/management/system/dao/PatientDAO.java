@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import patient.management.system.dto.PatientDTO;
 import patient.management.system.model.Patient;
+import patient.management.system.service.NotificationService;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,11 +14,16 @@ import java.util.List;
 public class PatientDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final File file = new File("data/patients.json");
+    private final NotificationService notificationService = new NotificationService();
 
     /**
      * @throws RuntimeException if email format is invalid [email format: .....@gmail.com]
      */
     public Patient addPatient(String name, String gender, int age, String email, String cnic) {
+
+        if (!notificationService.isValidEmail(email)) {
+            throw new RuntimeException("Invalid email.");
+        }
 
         ArrayList<Patient> patients = getPatientsInternal();
         duplicatePatientRegistration(cnic, patients);
