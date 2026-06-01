@@ -1,0 +1,97 @@
+[ {
+  "doctorId" : "DR0002",
+  "day" : "MONDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0002",
+  "day" : "TUESDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0002",
+  "day" : "WEDNESDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0002",
+  "day" : "THURSDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0002",
+  "day" : "FRIDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0003",
+  "day" : "TUESDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0003",
+  "day" : "WEDNESDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0003",
+  "day" : "THURSDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0003",
+  "day" : "FRIDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0003",
+  "day" : "SATURDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0004",
+  "day" : "MONDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0004",
+  "day" : "TUESDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0004",
+  "day" : "WEDNESDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0004",
+  "day" : "THURSDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0005",
+  "day" : "WEDNESDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0005",
+  "day" : "THURSDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0005",
+  "day" : "FRIDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0005",
+  "day" : "SATURDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0005",
+  "day" : "SUNDAY",
+  "shift" : "MORNING"
+}, {
+  "doctorId" : "DR0006",
+  "day" : "MONDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0006",
+  "day" : "TUESDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0006",
+  "day" : "WEDNESDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0006",
+  "day" : "THURSDAY",
+  "shift" : "EVENING"
+}, {
+  "doctorId" : "DR0006",
+  "day" : "FRIDAY",
+  "shift" : "EVENING"
+} ]

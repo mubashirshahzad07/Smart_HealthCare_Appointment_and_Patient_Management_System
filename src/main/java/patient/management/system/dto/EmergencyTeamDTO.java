@@ -28,4 +28,24 @@ public class EmergencyTeamDTO {
     public String getUserId() {
         return userId;
     }
+
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
+    }
+
+    public void setTriageColor(String triageColor) {
+        this.triageColor = triageColor;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 }

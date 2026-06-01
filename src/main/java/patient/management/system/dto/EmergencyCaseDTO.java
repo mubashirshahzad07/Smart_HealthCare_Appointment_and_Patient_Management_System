@@ -73,4 +73,60 @@ public class EmergencyCaseDTO {
     public String getFinalOutcome() {
         return finalOutcome;
     }
+
+    public void setEmergencyCaseId(String emergencyCaseId) {
+        this.emergencyCaseId = emergencyCaseId;
+    }
+
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
+    }
+
+    public void setTemporaryPatientId(String temporaryPatientId) {
+        this.temporaryPatientId = temporaryPatientId;
+    }
+
+    public void setIsTemporaryPatient(boolean isTemporaryPatient) {
+        this.isTemporaryPatient = isTemporaryPatient;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public void setCnic(String cnic) {
+        this.cnic = cnic;
+    }
+
+    public void setArrivalTime(String arrivalTime) {
+        this.arrivalTime = arrivalTime;
+    }
+
+    public void setInitialComplaint(String initialComplaint) {
+        this.initialComplaint = initialComplaint;
+    }
+
+    public void setTriageColor(String triageColor) {
+        this.triageColor = triageColor;
+    }
+
+    public void setTriageRemark(String triageRemark) {
+        this.triageRemark = triageRemark;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setFinalOutcome(String finalOutcome) {
+        this.finalOutcome = finalOutcome;
+    }
 }

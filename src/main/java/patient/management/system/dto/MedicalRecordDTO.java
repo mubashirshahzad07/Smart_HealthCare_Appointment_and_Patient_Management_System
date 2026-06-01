@@ -74,4 +74,60 @@ public class MedicalRecordDTO {
     public String getRecordStatus() {
         return recordStatus;
     }
+
+    public void setMedicalRecordId(String medicalRecordId) {
+        this.medicalRecordId = medicalRecordId;
+    }
+
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
+    }
+
+    public void setTemporaryPatientId(String temporaryPatientId) {
+        this.temporaryPatientId = temporaryPatientId;
+    }
+
+    public void setAppointmentId(String appointmentId) {
+        this.appointmentId = appointmentId;
+    }
+
+    public void setEmergencyCaseId(String emergencyCaseId) {
+        this.emergencyCaseId = emergencyCaseId;
+    }
+
+    public void setRecordType(String recordType) {
+        this.recordType = recordType;
+    }
+
+    public void setHandledBy(String handledBy) {
+        this.handledBy = handledBy;
+    }
+
+    public void setDiagnosis(String diagnosis) {
+        this.diagnosis = diagnosis;
+    }
+
+    public void setTreatmentGiven(String treatmentGiven) {
+        this.treatmentGiven = treatmentGiven;
+    }
+
+    public void setPrescription(String prescription) {
+        this.prescription = prescription;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public void setTriageColor(String triageColor) {
+        this.triageColor = triageColor;
+    }
+
+    public void setRecordDateTime(String recordDateTime) {
+        this.recordDateTime = recordDateTime;
+    }
+
+    public void setRecordStatus(String recordStatus) {
+        this.recordStatus = recordStatus;
+    }
 }

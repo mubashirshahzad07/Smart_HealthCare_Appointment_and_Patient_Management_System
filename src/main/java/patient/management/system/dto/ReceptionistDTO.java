@@ -33,4 +33,28 @@ public class ReceptionistDTO {
     public boolean getIsActive() {
         return isActive;
     }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setReceptionistId(String receptionistId) {
+        this.receptionistId = receptionistId;
+    }
+
+    public void setShift(String shift) {
+        this.shift = shift;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
 }

@@ -41,4 +41,24 @@ public class EmergencyReportDTO {
     public int getDeceased() {
         return deceased;
     }
+
+    public void setTriageColor(String triageColor) {
+        this.triageColor = triageColor;
+    }
+
+    public void setTotalCases(int totalCases) {
+        this.totalCases = totalCases;
+    }
+
+    public void setCompleted(int completed) {
+        this.completed = completed;
+    }
+
+    public void setMovedToICU(int movedToICU) {
+        this.movedToICU = movedToICU;
+    }
+
+    public void setDeceased(int deceased) {
+        this.deceased = deceased;
+    }
 }

@@ -63,4 +63,52 @@ public class AppointmentDTO {
     public String getPatientName() {
         return patientName;
     }
+
+    public void setAppointmentId(String appointmentId) {
+        this.appointmentId = appointmentId;
+    }
+
+    public void setAppointmentDate(String appointmentDate) {
+        this.appointmentDate = appointmentDate;
+    }
+
+    public void setAppointmentHour(int appointmentHour) {
+        this.appointmentHour = appointmentHour;
+    }
+
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
+    }
+
+    public void setDoctorId(String doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    public void setReceptionistId(String receptionistId) {
+        this.receptionistId = receptionistId;
+    }
+
+    public void setPatientDescription(String patientDescription) {
+        this.patientDescription = patientDescription;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setWillingToReschedule(boolean willingToReschedule) {
+        this.willingToReschedule = willingToReschedule;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
 }

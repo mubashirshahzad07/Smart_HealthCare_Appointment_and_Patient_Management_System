@@ -13,10 +13,12 @@ public class DoctorAvailabilityDTO {
     public DoctorAvailabilityDTO() {}
 
     public DoctorAvailabilityDTO(
-            String doctorId, String doctorName, String specialization,
-            double appointmentFee, List<Integer> freeSlots
+            String doctorId,
+            String doctorName,
+            String specialization,
+            double appointmentFee,
+            List<Integer> freeSlots
     ) {
-
         this.doctorId = doctorId;
         this.doctorName = doctorName;
         this.specialization = specialization;
@@ -42,5 +44,25 @@ public class DoctorAvailabilityDTO {
 
     public List<Integer> getFreeSlots() {
         return freeSlots;
+    }
+
+    public void setDoctorId(String doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public void setSpecialization(String specialization) {
+        this.specialization = specialization;
+    }
+
+    public void setAppointmentFee(double appointmentFee) {
+        this.appointmentFee = appointmentFee;
+    }
+
+    public void setFreeSlots(List<Integer> freeSlots) {
+        this.freeSlots = freeSlots;
     }
 }

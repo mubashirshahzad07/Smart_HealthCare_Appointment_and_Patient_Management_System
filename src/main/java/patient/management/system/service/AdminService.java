@@ -17,12 +17,12 @@ public class AdminService {
     private final PatientDAO patientDAO = new PatientDAO();
 
     public void addDoctor(
-        String username, String password, String doctorName, double appointmentFee,
-        Doctor.Specialization specialization, String doctorId, DoctorSchedule.Day startDay, 
-        DoctorSchedule.Day endDay, DoctorSchedule.Shift shift) {
+            String username, String password, String doctorName, double appointmentFee,
+            Doctor.Specialization specialization,DoctorSchedule.Day startDay,
+            DoctorSchedule.Day endDay, DoctorSchedule.Shift shift) {
 
         try {
-            doctorDAO.addDoctor(username, password, doctorName, appointmentFee, specialization);
+            String doctorId = doctorDAO.addDoctor(username, password, doctorName, appointmentFee, specialization);
             doctorScheduleDAO.addSchedule(doctorId, startDay, endDay, shift);
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);

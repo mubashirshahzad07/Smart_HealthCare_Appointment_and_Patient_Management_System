@@ -49,4 +49,28 @@ public class AppointmentReportDTO {
     public int getRescheduledAppointments() {
         return rescheduledAppointments;
     }
+
+    public void setDoctorId(String doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public void setTotalAppointments(int totalAppointments) {
+        this.totalAppointments = totalAppointments;
+    }
+
+    public void setCompletedAppointments(int completedAppointments) {
+        this.completedAppointments = completedAppointments;
+    }
+
+    public void setCancelledAppointments(int cancelledAppointments) {
+        this.cancelledAppointments = cancelledAppointments;
+    }
+
+    public void setRescheduledAppointments(int rescheduledAppointments) {
+        this.rescheduledAppointments = rescheduledAppointments;
+    }
 }

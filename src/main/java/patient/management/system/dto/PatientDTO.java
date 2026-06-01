@@ -33,4 +33,28 @@ public class PatientDTO {
     public String getCnic() {
         return cnic;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setCnic(String cnic) {
+        this.cnic = cnic;
+    }
 }

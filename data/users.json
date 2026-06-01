@@ -34,4 +34,34 @@
   "name" : "Green Emergency Team",
   "password" : "green123",
   "role" : "EMERGENCY_TEAM"
+}, {
+  "userId" : "USR0007",
+  "username" : "ahmed.khan",
+  "name" : "Dr. Ahmed Khan",
+  "password" : "pass123",
+  "role" : "DOCTOR"
+}, {
+  "userId" : "USR0008",
+  "username" : "sarah.ali",
+  "name" : "Dr. Sarah Ali",
+  "password" : "pass123",
+  "role" : "DOCTOR"
+}, {
+  "userId" : "USR0009",
+  "username" : "usman.tariq",
+  "name" : "Dr. Usman Tariq",
+  "password" : "pass123",
+  "role" : "DOCTOR"
+}, {
+  "userId" : "USR0010",
+  "username" : "ayesha.malik",
+  "name" : "Dr. Ayesha Malik",
+  "password" : "pass123",
+  "role" : "DOCTOR"
+}, {
+  "userId" : "USR0011",
+  "username" : "bilal.hassan",
+  "name" : "Dr. Bilal Hassan",
+  "password" : "pass123",
+  "role" : "DOCTOR"
 } ]

@@ -3,8 +3,8 @@ package patient.management.system.dao;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import patient.management.system.dto.DoctorDTO;
 import patient.management.system.model.DoctorSchedule;
+import patient.management.system.model.Doctor;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,30 +42,6 @@ public class DoctorScheduleDAO {
             throw new RuntimeException("Unable to save doctor schedule.");
         }
     }
-
-    // public void updateDoctorSchedule(String doctorId, List<DoctorSchedule> updatedSchedules) {
-
-    //     if (updatedSchedules == null || updatedSchedules.isEmpty()) {
-    //         throw new RuntimeException("Doctor must have at least one schedule.");
-    //     }
-
-    //     doctorRegistered(doctorId);
-    //     ArrayList<DoctorSchedule> schedules = getSchedulesInternal();
-    //     schedules.removeIf(schedule -> schedule.getDoctorId().equals(doctorId));
-
-    //     for (DoctorSchedule schedule : updatedSchedules) {
-
-    //         duplicateSchedule(schedules, doctorId, schedule.getDay(), schedule.getShift());
-
-    //         schedules.add(new DoctorSchedule(doctorId, schedule.getDay(), schedule.getShift()));
-    //     }
-
-    //     try {
-    //         mapper.writerWithDefaultPrettyPrinter().writeValue(file, schedules);
-    //     } catch (IOException e) {
-    //         throw new RuntimeException("Unable to update schedules.");
-    //     }
-    // }
 
     public void updateDoctorSchedule(String doctorId, DoctorSchedule.Day startDay, DoctorSchedule.Day endDay, DoctorSchedule.Shift shift, double fee) {
 
@@ -123,9 +99,9 @@ public class DoctorScheduleDAO {
     private void doctorRegistered(String doctorId) {
 
         DoctorDAO doctorDAO = new DoctorDAO();
-        List<DoctorDTO> doctors = doctorDAO.getActiveDoctors();
+        List<Doctor> doctors = doctorDAO.getActiveDoctorsInternal();
 
-        for (DoctorDTO doctor : doctors) {
+        for (Doctor doctor : doctors) {
 
             if (doctor.getDoctorId().equals(doctorId)) {
 

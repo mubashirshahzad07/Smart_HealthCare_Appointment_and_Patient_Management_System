@@ -6,4 +6,44 @@
   "appointmentFee" : 2500.0,
   "specialization" : "GENERAL_PHYSICIAN",
   "isActive" : true
+}, {
+  "userId" : "USR0007",
+  "username" : "ahmed.khan",
+  "name" : "Dr. Ahmed Khan",
+  "doctorId" : "DR0002",
+  "appointmentFee" : 1500.0,
+  "specialization" : "CARDIOLOGIST",
+  "isActive" : true
+}, {
+  "userId" : "USR0008",
+  "username" : "sarah.ali",
+  "name" : "Dr. Sarah Ali",
+  "doctorId" : "DR0003",
+  "appointmentFee" : 1200.0,
+  "specialization" : "DERMATOLOGIST",
+  "isActive" : true
+}, {
+  "userId" : "USR0009",
+  "username" : "usman.tariq",
+  "name" : "Dr. Usman Tariq",
+  "doctorId" : "DR0004",
+  "appointmentFee" : 1800.0,
+  "specialization" : "NEUROLOGIST",
+  "isActive" : true
+}, {
+  "userId" : "USR0010",
+  "username" : "ayesha.malik",
+  "name" : "Dr. Ayesha Malik",
+  "doctorId" : "DR0005",
+  "appointmentFee" : 1000.0,
+  "specialization" : "GENERAL_PHYSICIAN",
+  "isActive" : true
+}, {
+  "userId" : "USR0011",
+  "username" : "bilal.hassan",
+  "name" : "Dr. Bilal Hassan",
+  "doctorId" : "DR0006",
+  "appointmentFee" : 2000.0,
+  "specialization" : "ORTHOPEDIC",
+  "isActive" : true
 } ]

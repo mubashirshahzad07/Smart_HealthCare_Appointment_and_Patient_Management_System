@@ -16,8 +16,7 @@ public class DoctorDAO {
     private final ObjectMapper mapper = new ObjectMapper();
     private final File file = new File("data/doctors.json");
 
-
-    public void addDoctor(
+    public String addDoctor(
             String username, String password, String doctorName,
             double appointmentFee, Doctor.Specialization specialization) {
 
@@ -25,7 +24,14 @@ public class DoctorDAO {
         usernameAvailable(doctors, username);
 
         Doctor newDoctor = new Doctor(username, password, doctorName, appointmentFee, specialization);
-        new LoginDAO().addUser(newDoctor.getUserId(), username, password, doctorName, Role.DOCTOR);
+
+        new LoginDAO().addUser(
+                newDoctor.getUserId(),
+                username,
+                password,
+                doctorName,
+                Role.DOCTOR);
+
         doctors.add(newDoctor);
 
         try {
@@ -33,9 +39,11 @@ public class DoctorDAO {
         } catch (IOException e) {
             throw new RuntimeException("Unable to register doctor.");
         }
+
+        return newDoctor.getDoctorId(); 
     }
 
-    private ArrayList<Doctor> getActiveDoctorsInternal() {
+    ArrayList<Doctor> getActiveDoctorsInternal() {
 
         try {
 
