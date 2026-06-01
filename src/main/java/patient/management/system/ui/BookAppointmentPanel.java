@@ -1,5 +1,12 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.DoctorDTO;
+import patient.management.system.dto.PatientDTO;
+import patient.management.system.model.Appointment;
+import patient.management.system.model.Receptionist;
+import patient.management.system.model.User;
+import patient.management.system.service.ReceptionistService;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -18,23 +25,23 @@ import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import patient.management.system.model.User;
+import java.util.Map;
 
 public class BookAppointmentPanel extends JPanel {
     private final User loggedInUser;
+    private final ReceptionistService receptionistService;
     private final DefaultTableModel patientModel;
     private final JTable patientTable;
     private final TableRowSorter<DefaultTableModel> patientSorter;
-    private final JComboBox<DoctorSchedule> doctorBox;
-    private final JComboBox<String> slotBox;
+    private final JComboBox<DoctorOption> doctorBox;
+    private final JComboBox<AppointmentSlot> slotBox;
     private final JComboBox<String> rescheduleBox;
     private final JTextArea descriptionArea;
     private final JLabel selectedPatientLabel;
+    private final Map<String, PatientDTO> patientsById;
 
     public BookAppointmentPanel() {
         this(null);
@@ -43,6 +50,9 @@ public class BookAppointmentPanel extends JPanel {
     public BookAppointmentPanel(User loggedInUser) {
         super(new BorderLayout(18, 18));
         this.loggedInUser = loggedInUser;
+        this.receptionistService = new ReceptionistService();
+        this.patientsById = new HashMap<>();
+
         setBackground(UITheme.BACKGROUND);
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
 
@@ -52,15 +62,17 @@ public class BookAppointmentPanel extends JPanel {
         patientSorter = new TableRowSorter<>(patientModel);
         patientTable.setRowSorter(patientSorter);
 
-        doctorBox = new JComboBox<>(doctorSchedules());
-        slotBox = AppUI.comboBox(new String[]{"Select doctor first"});
+        doctorBox = new JComboBox<>();
+        slotBox = new JComboBox<>();
         rescheduleBox = AppUI.comboBox(new String[]{"Select option", "Yes", "No"});
         descriptionArea = AppUI.textArea("Patient description / reason for appointment");
         selectedPatientLabel = new JLabel("No patient selected");
 
         add(AppUI.pageTitle("Book Appointment"), BorderLayout.NORTH);
         add(buildContent(), BorderLayout.CENTER);
-        updateSlots();
+
+        loadPatients();
+        loadDoctors();
     }
 
     private JPanel buildContent() {
@@ -92,7 +104,11 @@ public class BookAppointmentPanel extends JPanel {
             }
         });
 
-        patientTable.getSelectionModel().addListSelectionListener(event -> updateSelectedPatient());
+        patientTable.getSelectionModel().addListSelectionListener(event -> {
+            if (!event.getValueIsAdjusting()) {
+                updateSelectedPatient();
+            }
+        });
 
         JPanel top = new JPanel(new BorderLayout(8, 8));
         top.setOpaque(false);
@@ -106,10 +122,10 @@ public class BookAppointmentPanel extends JPanel {
 
     private void configurePatientTable() {
         patientTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        patientTable.getColumnModel().getColumn(0).setPreferredWidth(65);
-        patientTable.getColumnModel().getColumn(1).setPreferredWidth(135);
-        patientTable.getColumnModel().getColumn(2).setPreferredWidth(135);
-        patientTable.getColumnModel().getColumn(3).setPreferredWidth(80);
+        patientTable.getColumnModel().getColumn(0).setPreferredWidth(75);
+        patientTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+        patientTable.getColumnModel().getColumn(2).setPreferredWidth(145);
+        patientTable.getColumnModel().getColumn(3).setPreferredWidth(85);
         patientTable.getColumnModel().getColumn(4).setPreferredWidth(55);
     }
 
@@ -128,10 +144,8 @@ public class BookAppointmentPanel extends JPanel {
         selectedPatientLabel.setFont(UITheme.BODY_FONT);
         selectedPatientLabel.setForeground(UITheme.MUTED_TEXT);
 
-        doctorBox.setFont(UITheme.BODY_FONT);
-        doctorBox.setBackground(UITheme.FIELD_BACKGROUND);
-        doctorBox.setForeground(UITheme.TEXT);
-        doctorBox.setFocusable(false);
+        styleComboBox(doctorBox);
+        styleComboBox(slotBox);
         doctorBox.addActionListener(event -> updateSlots());
 
         form.add(AppUI.smallLabel("Selected Patient"), AppUI.gbc(0, 0));
@@ -160,32 +174,60 @@ public class BookAppointmentPanel extends JPanel {
         return card;
     }
 
-    private DefaultTableModel buildPatientModel() {
-        DefaultTableModel model = new DefaultTableModel(new String[]{"ID", "Name", "CNIC", "Gender", "Age"}, 0);
-        /*
-         * Backend integration point:
-         * Later, load registered patients from PatientDAO/PatientService.
-         */
-        model.addRow(new Object[]{"P101", "Ali Raza", "35202-1234567-1", "Male", "29"});
-        model.addRow(new Object[]{"P102", "Sara Ali", "35202-7654321-2", "Female", "24"});
-        model.addRow(new Object[]{"P103", "Usman Shah", "35201-1111111-3", "Male", "33"});
-        model.addRow(new Object[]{"P104", "Hina Noor", "35201-2222222-4", "Female", "27"});
-        return model;
+    private void styleComboBox(JComboBox<?> comboBox) {
+        comboBox.setFont(UITheme.BODY_FONT);
+        comboBox.setBackground(UITheme.FIELD_BACKGROUND);
+        comboBox.setForeground(UITheme.TEXT);
+        comboBox.setFocusable(false);
     }
 
-    private DoctorSchedule[] doctorSchedules() {
-        return new DoctorSchedule[]{
-                new DoctorSchedule("D101", "Dr. Ahmed Khan", "Cardiology", "Mon-Fri", 10, 15),
-                new DoctorSchedule("D102", "Dr. Sara Ali", "Pediatrics", "Mon-Sat", 9, 14),
-                new DoctorSchedule("D103", "Dr. Bilal Sheikh", "Orthopedics", "Mon-Fri", 14, 19),
-                new DoctorSchedule("D104", "Dr. Hina Noor", "Gynecology", "Mon-Sat", 11, 17),
-                new DoctorSchedule("D105", "Dr. Usman Tariq", "Dermatology", "Mon, Tue, Thu, Sat", 15, 19),
-                new DoctorSchedule("D106", "Dr. Areeba Malik", "Neurology", "Mon, Wed, Fri", 16, 20),
-                new DoctorSchedule("D107", "Dr. Zain Hassan", "Ophthalmology", "Tue, Thu, Fri, Sun", 9, 13),
-                new DoctorSchedule("D108", "Dr. Mahnoor Qureshi", "ENT", "Wed, Thu, Sat, Sun", 13, 17),
-                new DoctorSchedule("D109", "Dr. Farhan Siddiqui", "General Surgery", "Tue, Thu, Sat", 17, 21),
-                new DoctorSchedule("D110", "Dr. Daniyal Raza", "Internal Medicine", "Daily", 9, 13)
+    private DefaultTableModel buildPatientModel() {
+        return new DefaultTableModel(new String[]{"ID", "Name", "CNIC", "Gender", "Age"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
+    }
+
+    private void loadPatients() {
+        try {
+            patientModel.setRowCount(0);
+            patientsById.clear();
+
+            for (PatientDTO patient : receptionistService.getPatients()) {
+                patientsById.put(patient.getPatientId(), patient);
+                patientModel.addRow(new Object[]{
+                        patient.getPatientId(),
+                        patient.getName(),
+                        patient.getCnic(),
+                        patient.getGender(),
+                        patient.getAge()
+                });
+            }
+        } catch (RuntimeException exception) {
+            showError(exception.getMessage(), "Unable to Load Patients");
+        }
+    }
+
+    private void loadDoctors() {
+        doctorBox.removeAllItems();
+        try {
+            List<DoctorDTO> doctors = receptionistService.getActiveDoctors();
+            if (doctors.isEmpty()) {
+                doctorBox.addItem(DoctorOption.message("No active doctors available"));
+                return;
+            }
+
+            doctorBox.addItem(DoctorOption.message("Select doctor"));
+            for (DoctorDTO doctor : doctors) {
+                doctorBox.addItem(new DoctorOption(doctor));
+            }
+            doctorBox.setSelectedIndex(0);
+        } catch (RuntimeException exception) {
+            doctorBox.addItem(DoctorOption.message("Unable to load doctors"));
+            showError(exception.getMessage(), "Unable to Load Doctors");
+        }
     }
 
     private void filterPatients(String searchText) {
@@ -204,143 +246,201 @@ public class BookAppointmentPanel extends JPanel {
             return;
         }
 
-        int modelRow = patientTable.convertRowIndexToModel(selectedRow);
-        String id = patientModel.getValueAt(modelRow, 0).toString();
-        String name = patientModel.getValueAt(modelRow, 1).toString();
-        String cnic = patientModel.getValueAt(modelRow, 2).toString();
-        selectedPatientLabel.setText(id + " - " + name + " (" + cnic + ")");
+        PatientDTO patient = selectedPatient();
+        selectedPatientLabel.setText(
+                patient.getPatientId() + " - " + patient.getName() + " (" + patient.getCnic() + ")"
+        );
     }
 
     private void updateSlots() {
         slotBox.removeAllItems();
-        DoctorSchedule schedule = (DoctorSchedule) doctorBox.getSelectedItem();
-        if (schedule == null) {
-            slotBox.addItem("Select doctor first");
+        DoctorOption doctor = (DoctorOption) doctorBox.getSelectedItem();
+        if (doctor == null || !doctor.isRealDoctor()) {
+            slotBox.addItem(AppointmentSlot.message("Select doctor first"));
             return;
         }
 
-        for (String slot : generateCurrentWeekSlots(schedule)) {
-            slotBox.addItem(slot);
-        }
-    }
-
-    private List<String> generateCurrentWeekSlots(DoctorSchedule schedule) {
-        List<String> slots = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-        LocalDate monday = today.with(DayOfWeek.MONDAY);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy");
-
-        for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
-            LocalDate date = monday.plusDays(dayOffset);
-            if (!schedule.worksOn(date.getDayOfWeek())) {
-                continue;
+        try {
+            List<String> slots = receptionistService.getDoctorAvailableSlotsThisWeek(doctor.getDoctorId());
+            if (slots.isEmpty()) {
+                slotBox.addItem(AppointmentSlot.message("No available slots this week"));
+                return;
             }
 
-            for (int hour = schedule.startHour; hour < schedule.endHour; hour++) {
-                /*
-                 * Backend integration point:
-                 * Later, skip slots already booked for this doctor by checking AppointmentDAO.
-                 */
-                slots.add(date.format(formatter) + " - " + formatHour(hour));
+            for (String slot : slots) {
+                slotBox.addItem(AppointmentSlot.fromBackend(slot));
             }
+        } catch (RuntimeException exception) {
+            slotBox.addItem(AppointmentSlot.message("Unable to load slots"));
+            showError(exception.getMessage(), "Unable to Load Slots");
         }
-
-        if (slots.isEmpty()) {
-            slots.add("No available slots this week");
-        }
-        return slots;
-    }
-
-    private String formatHour(int hour) {
-        int displayHour = hour % 12 == 0 ? 12 : hour % 12;
-        String suffix = hour < 12 ? "AM" : "PM";
-        return String.format("%02d:00 %s", displayHour, suffix);
     }
 
     private void bookAppointment() {
         try {
-            String slot = (String) slotBox.getSelectedItem();
+            PatientDTO patient = selectedPatient();
+            DoctorOption doctor = (DoctorOption) doctorBox.getSelectedItem();
+            AppointmentSlot slot = (AppointmentSlot) slotBox.getSelectedItem();
             String description = descriptionArea.getText().trim();
             String reschedule = (String) rescheduleBox.getSelectedItem();
 
-            if (patientTable.getSelectedRow() < 0
-                    || doctorBox.getSelectedItem() == null
-                    || slot == null
-                    || slot.startsWith("No available")
-                    || slot.startsWith("Select")
+            if (doctor == null || !doctor.isRealDoctor()
+                    || slot == null || !slot.isRealSlot()
                     || description.isEmpty()
-                    || reschedule == null
-                    || reschedule.startsWith("Select")) {
+                    || reschedule == null || reschedule.startsWith("Select")) {
                 throw new IllegalArgumentException("All fields must be filled.");
             }
 
-            /*
-             * Backend integration point:
-             * Use selected patient ID, selected DoctorSchedule.id, selected slot,
-             * description, and reschedule.equals("Yes") to create Appointment.
-             * status = SCHEDULED, type = REGULAR, receptionistId = logged-in receptionist.
-             */
+            Receptionist receptionist = receptionistService.getReceptionistByUserId(loggedInUser.getUserId());
+            receptionistService.addAppointment(
+                    slot.getYear(),
+                    slot.getMonth(),
+                    slot.getDay(),
+                    slot.getHour(),
+                    patient.getPatientId(),
+                    doctor.getDoctorId(),
+                    receptionist.getReceptionistId(),
+                    description,
+                    Appointment.Status.SCHEDULED,
+                    reschedule.equals("Yes"),
+                    patient.getName(),
+                    doctor.getDoctorName()
+            );
+
             JOptionPane.showMessageDialog(
                     this,
-                    "Appointment data is valid. Backend booking will be connected later.",
-                    "Validation Successful",
+                    "Appointment booked successfully.",
+                    "Success",
                     JOptionPane.INFORMATION_MESSAGE
             );
+            clearForm();
         } catch (IllegalArgumentException exception) {
-            JOptionPane.showMessageDialog(this, exception.getMessage(), "Validation Error", JOptionPane.WARNING_MESSAGE);
-        } catch (Exception exception) {
-            JOptionPane.showMessageDialog(this, "Could not book appointment: " + exception.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            showWarning(exception.getMessage());
+        } catch (RuntimeException exception) {
+            showError(exception.getMessage(), "Unable to Book Appointment");
         }
+    }
+
+    private PatientDTO selectedPatient() {
+        int selectedRow = patientTable.getSelectedRow();
+        if (selectedRow < 0) {
+            throw new IllegalArgumentException("Please select a patient from the table.");
+        }
+
+        int modelRow = patientTable.convertRowIndexToModel(selectedRow);
+        String patientId = patientModel.getValueAt(modelRow, 0).toString();
+        PatientDTO patient = patientsById.get(patientId);
+        if (patient == null) {
+            throw new IllegalArgumentException("Please select a patient from the table.");
+        }
+        return patient;
     }
 
     private void clearForm() {
         patientTable.clearSelection();
         selectedPatientLabel.setText("No patient selected");
-        doctorBox.setSelectedIndex(0);
+        if (doctorBox.getItemCount() > 0) {
+            doctorBox.setSelectedIndex(0);
+        }
         updateSlots();
         descriptionArea.setText("");
         rescheduleBox.setSelectedIndex(0);
     }
 
-    private static class DoctorSchedule {
-        private final String id;
-        private final String name;
-        private final String specialization;
-        private final String days;
-        private final int startHour;
-        private final int endHour;
+    private void showWarning(String message) {
+        JOptionPane.showMessageDialog(this, message, "Validation Error", JOptionPane.WARNING_MESSAGE);
+    }
 
-        DoctorSchedule(String id, String name, String specialization, String days, int startHour, int endHour) {
-            this.id = id;
-            this.name = name;
-            this.specialization = specialization;
-            this.days = days;
-            this.startHour = startHour;
-            this.endHour = endHour;
+    private void showError(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
+    }
+
+    private static class DoctorOption {
+        private final DoctorDTO doctor;
+        private final String label;
+
+        DoctorOption(DoctorDTO doctor) {
+            this.doctor = doctor;
+            this.label = doctor.getDoctorId() + " - " + doctor.getName() + " (" + doctor.getSpecialization() + ")";
         }
 
-        boolean worksOn(DayOfWeek dayOfWeek) {
-            if (days.equals("Daily")) {
-                return true;
-            }
-            if (days.equals("Mon-Fri")) {
-                return dayOfWeek.getValue() >= DayOfWeek.MONDAY.getValue()
-                        && dayOfWeek.getValue() <= DayOfWeek.FRIDAY.getValue();
-            }
-            if (days.equals("Mon-Sat")) {
-                return dayOfWeek.getValue() >= DayOfWeek.MONDAY.getValue()
-                        && dayOfWeek.getValue() <= DayOfWeek.SATURDAY.getValue();
-            }
+        private DoctorOption(String label) {
+            this.doctor = null;
+            this.label = label;
+        }
 
-            String shortDay = dayOfWeek.toString().substring(0, 3);
-            String formattedDay = shortDay.charAt(0) + shortDay.substring(1).toLowerCase();
-            return days.contains(formattedDay);
+        static DoctorOption message(String label) {
+            return new DoctorOption(label);
+        }
+
+        boolean isRealDoctor() {
+            return doctor != null;
+        }
+
+        String getDoctorId() {
+            return doctor.getDoctorId();
+        }
+
+        String getDoctorName() {
+            return doctor.getName();
         }
 
         @Override
         public String toString() {
-            return id + " - " + name + " (" + specialization + ")";
+            return label;
+        }
+    }
+
+    private static class AppointmentSlot {
+        private final LocalDate date;
+        private final int hour;
+        private final String label;
+
+        AppointmentSlot(LocalDate date, int hour, String label) {
+            this.date = date;
+            this.hour = hour;
+            this.label = label;
+        }
+
+        static AppointmentSlot message(String label) {
+            return new AppointmentSlot(null, -1, label);
+        }
+
+        static AppointmentSlot fromBackend(String value) {
+            String[] parts = value.split(" - ");
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("Unexpected slot format: " + value);
+            }
+
+            int commaIndex = parts[0].indexOf(", ");
+            String dateText = commaIndex >= 0 ? parts[0].substring(commaIndex + 2) : parts[0];
+            int hour = Integer.parseInt(parts[1].substring(0, 2));
+            return new AppointmentSlot(LocalDate.parse(dateText), hour, value);
+        }
+
+        boolean isRealSlot() {
+            return date != null && hour >= 0;
+        }
+
+        int getYear() {
+            return date.getYear();
+        }
+
+        int getMonth() {
+            return date.getMonthValue();
+        }
+
+        int getDay() {
+            return date.getDayOfMonth();
+        }
+
+        int getHour() {
+            return hour;
+        }
+
+        @Override
+        public String toString() {
+            return label;
         }
     }
 }

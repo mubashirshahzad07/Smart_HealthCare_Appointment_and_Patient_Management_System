@@ -1,6 +1,9 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.PatientDTO;
+import patient.management.system.model.TriageColor;
 import patient.management.system.model.User;
+import patient.management.system.service.ReceptionistService;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -31,9 +34,11 @@ import java.awt.RenderingHints;
 import java.awt.Dimension;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class EmergencyCaseEntryPanel extends JPanel {
     private final User loggedInUser;
+    private final ReceptionistService receptionistService;
     private final DefaultTableModel patientModel;
     private final JTable patientTable;
     private final TableRowSorter<DefaultTableModel> patientSorter;
@@ -41,7 +46,6 @@ public class EmergencyCaseEntryPanel extends JPanel {
     private final JTextField nameField;
     private final JTextField ageField;
     private final JTextField genderField;
-    private final JTextField phoneField;
     private final JTextField cnicField;
     private final JTextField arrivalTimeField;
     private final JTextArea complaintArea;
@@ -53,6 +57,7 @@ public class EmergencyCaseEntryPanel extends JPanel {
     public EmergencyCaseEntryPanel(User loggedInUser) {
         super(new BorderLayout(18, 18));
         this.loggedInUser = loggedInUser;
+        this.receptionistService = new ReceptionistService();
         setBackground(UITheme.BACKGROUND);
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
 
@@ -66,7 +71,6 @@ public class EmergencyCaseEntryPanel extends JPanel {
         nameField = AppUI.textField("Patient name or Unknown");
         ageField = AppUI.textField("Age or estimated age");
         genderField = AppUI.textField("Gender");
-        phoneField = AppUI.textField("Phone number");
         cnicField = AppUI.textField("CNIC");
         arrivalTimeField = AppUI.textField("Arrival time");
         arrivalTimeField.setEditable(false);
@@ -78,6 +82,7 @@ public class EmergencyCaseEntryPanel extends JPanel {
 
         add(AppUI.pageTitle("Emergency Case"), BorderLayout.NORTH);
         add(buildContent(), BorderLayout.CENTER);
+        loadPatients();
         setTemporaryMode(false);
     }
 
@@ -118,14 +123,12 @@ public class EmergencyCaseEntryPanel extends JPanel {
         form.add(ageField, gbc(0, 4));
         form.add(AppUI.smallLabel("Gender *"), gbc(0, 5));
         form.add(genderField, gbc(0, 6));
-        form.add(AppUI.smallLabel("Phone Number"), gbc(0, 7));
-        form.add(phoneField, gbc(0, 8));
-        form.add(AppUI.smallLabel("CNIC"), gbc(0, 9));
-        form.add(cnicField, gbc(0, 10));
-        form.add(AppUI.smallLabel("Arrival Time"), gbc(0, 11));
-        form.add(arrivalTimeField, gbc(0, 12));
-        form.add(AppUI.smallLabel("Initial Complaint *"), gbc(0, 13));
-        form.add(complaintArea, gbc(0, 14));
+        form.add(AppUI.smallLabel("CNIC"), gbc(0, 7));
+        form.add(cnicField, gbc(0, 8));
+        form.add(AppUI.smallLabel("Arrival Time"), gbc(0, 9));
+        form.add(arrivalTimeField, gbc(0, 10));
+        form.add(AppUI.smallLabel("Initial Complaint *"), gbc(0, 11));
+        form.add(complaintArea, gbc(0, 12));
 
         JButton createButton = AppUI.primaryButton("Register Emergency Case");
         JButton clearButton = AppUI.secondaryButton("Clear");
@@ -238,7 +241,7 @@ public class EmergencyCaseEntryPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         panel.setOpaque(false);
 
-        JTextField searchField = AppUI.textField("Search registered patient by name, CNIC, or phone");
+        JTextField searchField = AppUI.textField("Search registered patient by name or CNIC");
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent event) {
@@ -277,11 +280,36 @@ public class EmergencyCaseEntryPanel extends JPanel {
     }
 
     private DefaultTableModel buildPatientModel() {
-        DefaultTableModel model = new DefaultTableModel(new String[]{"ID", "Name", "CNIC", "Phone", "Age", "Gender"}, 0);
-        model.addRow(new Object[]{"P101", "Ali Raza", "35202-1234567-1", "0312-3456789", "29", "Male"});
-        model.addRow(new Object[]{"P102", "Sara Ali", "35202-7654321-2", "0300-1112233", "24", "Female"});
-        model.addRow(new Object[]{"P103", "Usman Shah", "35201-1111111-3", "0321-4445566", "33", "Male"});
-        return model;
+        return new DefaultTableModel(new String[]{"ID", "Name", "CNIC", "Age", "Gender"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+    }
+
+    private void loadPatients() {
+        try {
+            patientModel.setRowCount(0);
+            List<PatientDTO> patients = receptionistService.getPatients();
+
+            for (PatientDTO patient : patients) {
+                patientModel.addRow(new Object[]{
+                        patient.getPatientId(),
+                        patient.getName(),
+                        patient.getCnic(),
+                        patient.getAge(),
+                        patient.getGender()
+                });
+            }
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Load Patients",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     private void configurePatientTable() {
@@ -289,9 +317,8 @@ public class EmergencyCaseEntryPanel extends JPanel {
         patientTable.getColumnModel().getColumn(0).setPreferredWidth(65);
         patientTable.getColumnModel().getColumn(1).setPreferredWidth(145);
         patientTable.getColumnModel().getColumn(2).setPreferredWidth(135);
-        patientTable.getColumnModel().getColumn(3).setPreferredWidth(115);
-        patientTable.getColumnModel().getColumn(4).setPreferredWidth(55);
-        patientTable.getColumnModel().getColumn(5).setPreferredWidth(80);
+        patientTable.getColumnModel().getColumn(3).setPreferredWidth(55);
+        patientTable.getColumnModel().getColumn(4).setPreferredWidth(80);
     }
 
     private GridBagConstraints gbc(int x, int y) {
@@ -310,7 +337,7 @@ public class EmergencyCaseEntryPanel extends JPanel {
         if (text.isEmpty()) {
             patientSorter.setRowFilter(null);
         } else {
-            patientSorter.setRowFilter(RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(text), 1, 2, 3));
+            patientSorter.setRowFilter(RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(text), 1, 2));
         }
     }
 
@@ -323,9 +350,8 @@ public class EmergencyCaseEntryPanel extends JPanel {
         int modelRow = patientTable.convertRowIndexToModel(selectedRow);
         nameField.setText(patientModel.getValueAt(modelRow, 1).toString());
         cnicField.setText(patientModel.getValueAt(modelRow, 2).toString());
-        phoneField.setText(patientModel.getValueAt(modelRow, 3).toString());
-        ageField.setText(patientModel.getValueAt(modelRow, 4).toString());
-        genderField.setText(patientModel.getValueAt(modelRow, 5).toString());
+        ageField.setText(patientModel.getValueAt(modelRow, 3).toString());
+        genderField.setText(patientModel.getValueAt(modelRow, 4).toString());
         arrivalTimeField.setText(currentArrivalTime());
     }
 
@@ -334,14 +360,12 @@ public class EmergencyCaseEntryPanel extends JPanel {
         nameField.setEditable(editable);
         ageField.setEditable(editable);
         genderField.setEditable(editable);
-        phoneField.setEditable(editable);
         cnicField.setEditable(editable);
 
         if (!temporaryMode) {
             nameField.setText("");
             ageField.setText("");
             genderField.setText("");
-            phoneField.setText("");
             cnicField.setText("");
         }
         arrivalTimeField.setText(currentArrivalTime());
@@ -365,29 +389,52 @@ public class EmergencyCaseEntryPanel extends JPanel {
                 throw new IllegalArgumentException("All required fields must be filled.");
             }
 
-            Integer.parseInt(ageField.getText().trim());
+            int age = Integer.parseInt(ageField.getText().trim());
+            if (age <= 0) {
+                throw new IllegalArgumentException("Age must be greater than 0.");
+            }
 
-            /*
-             * Backend integration point:
-             * EmergencyCase fields:
-             * emergencyCaseId: generated by backend
-             * patientId: selected patient ID if registered, otherwise null
-             * temporaryPatientId: generated if temporaryIdCheckBox is selected
-             * isTemporaryPatient: temporaryIdCheckBox.isSelected()
-             * patientName, age, gender, phoneNumber, cnic: copied from fields
-             * arrivalTime: generated by system
-             * initialComplaint: complaintArea text
-             * triageColor: selectedTriageColor
-             * triageRemarks: remarks
-             * status: ACTIVE
-             * finalOutcome: null for now
-             */
-            JOptionPane.showMessageDialog(this, "Emergency case is valid. Backend saving will be connected later.");
+            receptionistService.registerEmergencyCase(
+                    temporary ? null : selectedPatientId(),
+                    temporary,
+                    nameField.getText().trim(),
+                    age,
+                    genderField.getText().trim(),
+                    cnicField.getText().trim(),
+                    complaint,
+                    TriageColor.valueOf(selectedTriageColor),
+                    remarks
+            );
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Emergency case registered successfully.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            clearForm();
         } catch (NumberFormatException exception) {
             JOptionPane.showMessageDialog(this, "Age must be a number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
         } catch (IllegalArgumentException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Validation Error", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Register Emergency Case",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
+    }
+
+    private String selectedPatientId() {
+        int selectedRow = patientTable.getSelectedRow();
+        if (selectedRow < 0) {
+            throw new IllegalArgumentException("Select a registered patient or create a temporary ID.");
+        }
+
+        int modelRow = patientTable.convertRowIndexToModel(selectedRow);
+        return patientModel.getValueAt(modelRow, 0).toString();
     }
 
     private void clearForm() {

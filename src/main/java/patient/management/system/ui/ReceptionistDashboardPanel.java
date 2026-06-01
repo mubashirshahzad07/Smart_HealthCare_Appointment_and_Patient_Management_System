@@ -1,29 +1,60 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.AppointmentDTO;
+import patient.management.system.model.User;
+import patient.management.system.service.NotificationService;
+import patient.management.system.service.ReceptionistService;
+
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import patient.management.system.model.User;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.time.LocalDate;
 
 public class ReceptionistDashboardPanel extends JPanel {
+    private final User loggedInUser;
+    private final ReceptionistService receptionistService;
+    private final NotificationService notificationService;
+
     public ReceptionistDashboardPanel() {
         this(null);
     }
 
     public ReceptionistDashboardPanel(User loggedInUser) {
         super(new BorderLayout(18, 18));
+        this.loggedInUser = loggedInUser;
+        this.receptionistService = new ReceptionistService();
+        this.notificationService = new NotificationService();
+
         setBackground(UITheme.BACKGROUND);
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
 
-        add(AppUI.pageTitle("Receptionist Dashboard"), BorderLayout.NORTH);
+        add(buildHeader(), BorderLayout.NORTH);
         add(buildCenter(), BorderLayout.CENTER);
+    }
+
+    private JPanel buildHeader() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.add(AppUI.pageTitle("Receptionist Dashboard"), BorderLayout.WEST);
+
+        JButton reminderButton = AppUI.primaryButton("Send Tomorrow's Reminders");
+        reminderButton.addActionListener(event -> sendReminders());
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        actions.setOpaque(false);
+        actions.add(reminderButton);
+        header.add(actions, BorderLayout.EAST);
+        return header;
     }
 
     private JPanel buildCenter() {
@@ -32,17 +63,29 @@ public class ReceptionistDashboardPanel extends JPanel {
 
         JPanel stats = new JPanel(new GridLayout(1, 4, 14, 14));
         stats.setOpaque(false);
-        stats.add(statCard("Today's Appointments", "24", UITheme.SOFT_BLUE, UITheme.BLUE));
-        stats.add(statCard("Upcoming Appointments", "56", UITheme.SOFT_GREEN, UITheme.SUCCESS));
-        stats.add(statCard("Emergency Cases", "07", UITheme.SOFT_RED, UITheme.DANGER));
-        stats.add(statCard("Temporary Links", "03", UITheme.SOFT_YELLOW, UITheme.WARNING));
+        try {
+            stats.add(statCard("Today's Appointments", receptionistService.getTodayAppointmentsCount(),
+                    UITheme.SOFT_BLUE, UITheme.BLUE));
+            stats.add(statCard("Upcoming Appointments", receptionistService.getUpcomingAppointmentsCount(),
+                    UITheme.SOFT_GREEN, UITheme.SUCCESS));
+            stats.add(statCard("Emergency Cases", receptionistService.getTotalEmergencyCasesCount(),
+                    UITheme.SOFT_RED, UITheme.DANGER));
+            stats.add(statCard("Temporary Links", receptionistService.getTemporaryLinksCount(),
+                    UITheme.SOFT_YELLOW, UITheme.WARNING));
+        } catch (RuntimeException exception) {
+            stats.add(statCard("Today's Appointments", 0, UITheme.SOFT_BLUE, UITheme.BLUE));
+            stats.add(statCard("Upcoming Appointments", 0, UITheme.SOFT_GREEN, UITheme.SUCCESS));
+            stats.add(statCard("Emergency Cases", 0, UITheme.SOFT_RED, UITheme.DANGER));
+            stats.add(statCard("Temporary Links", 0, UITheme.SOFT_YELLOW, UITheme.WARNING));
+            showError(exception.getMessage(), "Unable to Load Dashboard");
+        }
 
         center.add(stats, BorderLayout.NORTH);
         center.add(appointmentsTable(), BorderLayout.CENTER);
         return center;
     }
 
-    private JPanel statCard(String title, String value, Color background, Color accent) {
+    private JPanel statCard(String title, int value, Color background, Color accent) {
         JPanel card = AppUI.cardPanel();
         card.setBackground(background);
 
@@ -50,7 +93,7 @@ public class ReceptionistDashboardPanel extends JPanel {
         titleLabel.setFont(UITheme.LABEL_FONT);
         titleLabel.setForeground(UITheme.TEXT);
 
-        JLabel valueLabel = new JLabel(value);
+        JLabel valueLabel = new JLabel(String.format("%02d", value));
         valueLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 28));
         valueLabel.setForeground(accent);
 
@@ -69,19 +112,52 @@ public class ReceptionistDashboardPanel extends JPanel {
             }
         };
 
-        /*
-         * Backend integration point:
-         * Later, load today's appointments from AppointmentFileHandler/AppointmentService.
-         */
-        model.addRow(new Object[]{"A101", "Ali Raza", "Dr. Ahmed", "09:00 AM", "SCHEDULED"});
-        model.addRow(new Object[]{"A102", "Sara Ali", "Dr. Khan", "10:00 AM", "RESCHEDULED"});
-        model.addRow(new Object[]{"A103", "Usman Shah", "Dr. Ahmed", "11:00 AM", "COMPLETED"});
-        model.addRow(new Object[]{"A104", "Hina Noor", "Dr. Fatima", "12:00 PM", "CANCELLED"});
-        model.addRow(new Object[]{"A105", "Bilal Ahmed", "Dr. Khan", "01:00 PM", "SCHEDULED"});
+        try {
+            String today = LocalDate.now().toString();
+            for (AppointmentDTO appointment : receptionistService.getAppointments()) {
+                if (!today.equals(appointment.getAppointmentDate())) {
+                    continue;
+                }
+
+                model.addRow(new Object[]{
+                        appointment.getAppointmentId(),
+                        appointment.getPatientName(),
+                        appointment.getDoctorName(),
+                        formatHour(appointment.getAppointmentHour()),
+                        appointment.getStatus()
+                });
+            }
+        } catch (RuntimeException exception) {
+            showError(exception.getMessage(), "Unable to Load Appointments");
+        }
 
         JTable table = AppUI.table(model);
         addStatusColors(table);
         return AppUI.tableScrollPane(table);
+    }
+
+    private void sendReminders() {
+        try {
+            notificationService.sendReminder();
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Reminders sent for tomorrow's appointments.",
+                    "Reminders Sent",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        } catch (RuntimeException exception) {
+            showError(exception.getMessage(), "Unable to Send Reminders");
+        }
+    }
+
+    private String formatHour(int hour) {
+        int displayHour = hour % 12 == 0 ? 12 : hour % 12;
+        String suffix = hour < 12 ? "AM" : "PM";
+        return String.format("%02d:00 %s", displayHour, suffix);
+    }
+
+    private void showError(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
     private void addStatusColors(JTable table) {

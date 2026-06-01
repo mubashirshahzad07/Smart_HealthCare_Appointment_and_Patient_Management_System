@@ -159,17 +159,6 @@ public class LoginFrame extends JFrame {
         gbc.insets = new Insets(18, 0, 0, 0);
         card.add(loginButton, gbc);
 
-        JPanel credentialsHint = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        credentialsHint.setOpaque(false);
-        JLabel hintText = new JLabel("Try: admin/admin123, receptionist/recep123, doctor/doc123");
-        hintText.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        hintText.setForeground(UITheme.MUTED_TEXT);
-        credentialsHint.add(hintText);
-
-        gbc.gridy = 9;
-        gbc.insets = new Insets(16, 0, 0, 0);
-        card.add(credentialsHint, gbc);
-
         return card;
     }
 

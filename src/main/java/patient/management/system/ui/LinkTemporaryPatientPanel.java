@@ -1,6 +1,9 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.EmergencyCaseDTO;
+import patient.management.system.dto.PatientDTO;
 import patient.management.system.model.User;
+import patient.management.system.service.ReceptionistService;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -20,9 +23,11 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.List;
 
 public class LinkTemporaryPatientPanel extends JPanel {
     private final User loggedInUser;
+    private final ReceptionistService receptionistService;
     private final DefaultTableModel tempModel;
     private final DefaultTableModel patientModel;
     private final JTable tempTable;
@@ -32,7 +37,6 @@ public class LinkTemporaryPatientPanel extends JPanel {
     private final JTextField nameField;
     private final JTextField ageField;
     private final JTextField genderField;
-    private final JTextField phoneField;
     private final JTextField cnicField;
     private final JTextField emailField;
     private final JLabel selectedTempLabel;
@@ -42,6 +46,7 @@ public class LinkTemporaryPatientPanel extends JPanel {
     public LinkTemporaryPatientPanel(User loggedInUser) {
         super(new BorderLayout(18, 18));
         this.loggedInUser = loggedInUser;
+        this.receptionistService = new ReceptionistService();
         setBackground(UITheme.BACKGROUND);
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
 
@@ -58,7 +63,6 @@ public class LinkTemporaryPatientPanel extends JPanel {
         nameField = AppUI.textField("Patient name");
         ageField = AppUI.textField("Age");
         genderField = AppUI.textField("Gender");
-        phoneField = AppUI.textField("Phone number");
         cnicField = AppUI.textField("CNIC");
         emailField = AppUI.textField("Email");
         selectedTempLabel = new JLabel("No temporary case selected");
@@ -66,6 +70,8 @@ public class LinkTemporaryPatientPanel extends JPanel {
 
         add(AppUI.pageTitle("Link Patient Records"), BorderLayout.NORTH);
         add(buildContent(), BorderLayout.CENTER);
+        loadTemporaryPatients();
+        loadRegisteredPatients();
     }
 
     private JPanel buildContent() {
@@ -96,12 +102,10 @@ public class LinkTemporaryPatientPanel extends JPanel {
         form.add(AppUI.smallLabel("Gender *"), formGbc(1, 6, 1));
         form.add(ageField, formGbc(0, 7, 1));
         form.add(genderField, formGbc(1, 7, 1));
-        form.add(AppUI.smallLabel("Phone Number"), formGbc(0, 8, 2));
-        form.add(phoneField, formGbc(0, 9, 2));
-        form.add(AppUI.smallLabel("CNIC *"), formGbc(0, 10, 2));
-        form.add(cnicField, formGbc(0, 11, 2));
-        form.add(AppUI.smallLabel("Email *"), formGbc(0, 12, 2));
-        form.add(emailField, formGbc(0, 13, 2));
+        form.add(AppUI.smallLabel("CNIC *"), formGbc(0, 8, 2));
+        form.add(cnicField, formGbc(0, 9, 2));
+        form.add(AppUI.smallLabel("Email *"), formGbc(0, 10, 2));
+        form.add(emailField, formGbc(0, 11, 2));
 
         JButton linkButton = AppUI.primaryButton("Link Patient");
         JButton registerButton = AppUI.accentButton("Register and Link Patient", UITheme.TEAL);
@@ -197,25 +201,69 @@ public class LinkTemporaryPatientPanel extends JPanel {
     }
 
     private DefaultTableModel buildTempModel() {
-        DefaultTableModel model = new DefaultTableModel(
-                new String[]{"Temp ID", "Case ID", "Name", "Age", "Gender", "Phone", "CNIC", "Email", "Triage"},
+        return new DefaultTableModel(
+                new String[]{"Temp ID", "Case ID", "Name", "Age", "Gender", "CNIC", "Email", "Triage"},
                 0
-        );
-        model.addRow(new Object[]{"TEMP001", "E101", "Unknown Male", "45", "Male", "", "", "", "RED"});
-        model.addRow(new Object[]{"TEMP002", "E103", "Unknown", "30", "Unknown", "0300-9988776", "", "", "YELLOW"});
-        model.addRow(new Object[]{"TEMP003", "E104", "Ayesha", "22", "Female", "", "35202-0000000-5", "", "GREEN"});
-        return model;
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
     }
 
     private DefaultTableModel buildPatientModel() {
-        DefaultTableModel model = new DefaultTableModel(
-                new String[]{"Patient ID", "Name", "Age", "Gender", "Phone", "CNIC", "Email"},
+        return new DefaultTableModel(
+                new String[]{"Patient ID", "Name", "Age", "Gender", "CNIC", "Email"},
                 0
-        );
-        model.addRow(new Object[]{"P101", "Ali Raza", "29", "Male", "0312-3456789", "35202-1234567-1", "ali@gmail.com"});
-        model.addRow(new Object[]{"P102", "Sara Ali", "24", "Female", "0300-1112233", "35202-7654321-2", "sara@gmail.com"});
-        model.addRow(new Object[]{"P103", "Usman Shah", "33", "Male", "0321-4445566", "35201-1111111-3", "usman@gmail.com"});
-        return model;
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+    }
+
+    private void loadTemporaryPatients() {
+        try {
+            tempModel.setRowCount(0);
+            List<EmergencyCaseDTO> cases = receptionistService.getTemporaryPatients();
+
+            for (EmergencyCaseDTO emergencyCase : cases) {
+                tempModel.addRow(new Object[]{
+                        emergencyCase.getTemporaryPatientId(),
+                        emergencyCase.getEmergencyCaseId(),
+                        emergencyCase.getPatientName(),
+                        emergencyCase.getAge(),
+                        emergencyCase.getGender(),
+                        emergencyCase.getCnic(),
+                        "",
+                        emergencyCase.getTriageColor()
+                });
+            }
+        } catch (RuntimeException exception) {
+            showError(exception.getMessage(), "Unable to Load Temporary Patients");
+        }
+    }
+
+    private void loadRegisteredPatients() {
+        try {
+            patientModel.setRowCount(0);
+            List<PatientDTO> patients = receptionistService.getPatients();
+
+            for (PatientDTO patient : patients) {
+                patientModel.addRow(new Object[]{
+                        patient.getPatientId(),
+                        patient.getName(),
+                        patient.getAge(),
+                        patient.getGender(),
+                        patient.getCnic(),
+                        patient.getEmail()
+                });
+            }
+        } catch (RuntimeException exception) {
+            showError(exception.getMessage(), "Unable to Load Registered Patients");
+        }
     }
 
     private void configureTables() {
@@ -225,19 +273,17 @@ public class LinkTemporaryPatientPanel extends JPanel {
         tempTable.getColumnModel().getColumn(2).setPreferredWidth(130);
         tempTable.getColumnModel().getColumn(3).setPreferredWidth(55);
         tempTable.getColumnModel().getColumn(4).setPreferredWidth(80);
-        tempTable.getColumnModel().getColumn(5).setPreferredWidth(115);
-        tempTable.getColumnModel().getColumn(6).setPreferredWidth(135);
-        tempTable.getColumnModel().getColumn(7).setPreferredWidth(150);
-        tempTable.getColumnModel().getColumn(8).setPreferredWidth(70);
+        tempTable.getColumnModel().getColumn(5).setPreferredWidth(135);
+        tempTable.getColumnModel().getColumn(6).setPreferredWidth(150);
+        tempTable.getColumnModel().getColumn(7).setPreferredWidth(70);
 
         patientTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         patientTable.getColumnModel().getColumn(0).setPreferredWidth(85);
         patientTable.getColumnModel().getColumn(1).setPreferredWidth(130);
         patientTable.getColumnModel().getColumn(2).setPreferredWidth(55);
         patientTable.getColumnModel().getColumn(3).setPreferredWidth(80);
-        patientTable.getColumnModel().getColumn(4).setPreferredWidth(115);
-        patientTable.getColumnModel().getColumn(5).setPreferredWidth(135);
-        patientTable.getColumnModel().getColumn(6).setPreferredWidth(150);
+        patientTable.getColumnModel().getColumn(4).setPreferredWidth(135);
+        patientTable.getColumnModel().getColumn(5).setPreferredWidth(150);
     }
 
     private JScrollPane scrollPaneWithBottomBar(JTable table) {
@@ -291,9 +337,8 @@ public class LinkTemporaryPatientPanel extends JPanel {
         nameField.setText(value(row, 2, tempModel));
         ageField.setText(value(row, 3, tempModel));
         genderField.setText(value(row, 4, tempModel));
-        phoneField.setText(value(row, 5, tempModel));
-        cnicField.setText(value(row, 6, tempModel));
-        emailField.setText(value(row, 7, tempModel));
+        cnicField.setText(value(row, 5, tempModel));
+        emailField.setText(value(row, 6, tempModel));
     }
 
     private void fillFromRegisteredPatient() {
@@ -309,9 +354,8 @@ public class LinkTemporaryPatientPanel extends JPanel {
         nameField.setText(value(row, 1, patientModel));
         ageField.setText(value(row, 2, patientModel));
         genderField.setText(value(row, 3, patientModel));
-        phoneField.setText(value(row, 4, patientModel));
-        cnicField.setText(value(row, 5, patientModel));
-        emailField.setText(value(row, 6, patientModel));
+        cnicField.setText(value(row, 4, patientModel));
+        emailField.setText(value(row, 5, patientModel));
     }
 
     private String value(int row, int column, DefaultTableModel model) {
@@ -325,14 +369,20 @@ public class LinkTemporaryPatientPanel extends JPanel {
                 throw new IllegalArgumentException("Select a temporary case and a registered patient.");
             }
 
-            /*
-             * Backend integration point:
-             * Link selected temporaryPatientId/emergencyCaseId to selected registered patientId.
-             * Registered patient fields are considered the reliable source.
-             */
-            JOptionPane.showMessageDialog(this, "Temporary patient linked to existing patient.");
+            receptionistService.linkTemporaryPatient(selectedEmergencyCaseId(), selectedPatientId());
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Temporary patient linked to existing patient.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            clearScreen();
+            loadTemporaryPatients();
         } catch (IllegalArgumentException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Validation Error", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException exception) {
+            showError(exception.getMessage(), "Unable to Link Patient");
         }
     }
 
@@ -347,18 +397,61 @@ public class LinkTemporaryPatientPanel extends JPanel {
                 throw new IllegalArgumentException("Select a temporary case and fill all required patient fields.");
             }
 
-            Integer.parseInt(ageField.getText().trim());
+            int age = Integer.parseInt(ageField.getText().trim());
+            if (age <= 0) {
+                throw new IllegalArgumentException("Age must be greater than 0.");
+            }
 
-            /*
-             * Backend integration point:
-             * Create registered Patient from fields, then link temp ID/emergency case to new patientId.
-             */
-            JOptionPane.showMessageDialog(this, "New patient registered and temporary case linked.");
+            receptionistService.registerAndLinkTemporaryPatient(
+                    selectedEmergencyCaseId(),
+                    nameField.getText().trim(),
+                    age,
+                    genderField.getText().trim(),
+                    "",
+                    cnicField.getText().trim(),
+                    emailField.getText().trim()
+            );
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "New patient registered and temporary case linked.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            clearScreen();
+            loadTemporaryPatients();
+            loadRegisteredPatients();
         } catch (NumberFormatException exception) {
             JOptionPane.showMessageDialog(this, "Age must be a number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
         } catch (IllegalArgumentException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Validation Error", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException exception) {
+            showError(exception.getMessage(), "Unable to Register and Link Patient");
         }
+    }
+
+    private String selectedEmergencyCaseId() {
+        int selectedRow = tempTable.getSelectedRow();
+        if (selectedRow < 0) {
+            throw new IllegalArgumentException("Select a temporary case.");
+        }
+
+        int row = tempTable.convertRowIndexToModel(selectedRow);
+        return value(row, 1, tempModel);
+    }
+
+    private String selectedPatientId() {
+        int selectedRow = patientTable.getSelectedRow();
+        if (selectedRow < 0) {
+            throw new IllegalArgumentException("Select a registered patient.");
+        }
+
+        int row = patientTable.convertRowIndexToModel(selectedRow);
+        return value(row, 0, patientModel);
+    }
+
+    private void showError(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
     private void clearScreen() {
@@ -370,7 +463,6 @@ public class LinkTemporaryPatientPanel extends JPanel {
         nameField.setText("");
         ageField.setText("");
         genderField.setText("");
-        phoneField.setText("");
         cnicField.setText("");
         emailField.setText("");
     }

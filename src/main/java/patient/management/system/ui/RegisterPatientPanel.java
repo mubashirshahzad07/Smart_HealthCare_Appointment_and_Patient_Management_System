@@ -1,5 +1,9 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.PatientDTO;
+import patient.management.system.service.ReceptionistService;
+import java.util.List;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -22,6 +26,8 @@ public class RegisterPatientPanel extends JPanel {
     private final JTextField ageField;
     private final JTextField emailField;
     private final User loggedInUser;
+    private final ReceptionistService receptionistService;
+    private final DefaultTableModel patientTableModel;
 
     public RegisterPatientPanel() {
         this(null);
@@ -39,6 +45,18 @@ public class RegisterPatientPanel extends JPanel {
         ageField = AppUI.textField("Age");
         emailField = AppUI.textField("Email address");
 
+        receptionistService = new ReceptionistService();
+
+        patientTableModel = new DefaultTableModel(
+                new String[]{"ID", "Name", "CNIC", "Gender", "Age", "Email"},
+                0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
         add(AppUI.pageTitle("Register Patient"), BorderLayout.NORTH);
         add(buildContent(), BorderLayout.CENTER);
     }
@@ -86,22 +104,41 @@ public class RegisterPatientPanel extends JPanel {
         JPanel card = AppUI.cardPanel();
         card.add(new JLabel("Registered Patients"), BorderLayout.NORTH);
 
-        DefaultTableModel model = new DefaultTableModel(new String[]{"ID", "Name", "CNIC", "Gender", "Age", "Email"}, 0);
-        /*
-         * Backend integration point:
-         * Later, load patients from PatientDAO/PatientService.
-         */
-        model.addRow(new Object[]{"P101", "Ali Raza", "35202-1234567-1", "Male", "29", "ali@gmail.com"});
-        model.addRow(new Object[]{"P102", "Sara Ali", "35202-7654321-2", "Female", "24", "sara@gmail.com"});
-        model.addRow(new Object[]{"P103", "Usman Shah", "35201-1111111-3", "Male", "33", "usman@gmail.com"});
-        model.addRow(new Object[]{"P104", "Hina Noor", "35201-2222222-4", "Female", "27", "hina@gmail.com"});
-
-        JTable table = AppUI.table(model);
+        JTable table = AppUI.table(patientTableModel);
         configurePatientTable(table);
         card.add(scrollPaneWithBottomBar(table), BorderLayout.CENTER);
+
+        loadPatientsIntoTable();
         return card;
     }
 
+    private void loadPatientsIntoTable() {
+        try {
+            patientTableModel.setRowCount(0);
+
+            List<PatientDTO> patients = receptionistService.getPatients();
+
+            for (PatientDTO patient : patients) {
+                patientTableModel.addRow(new Object[]{
+                        patient.getPatientId(),
+                        patient.getName(),
+                        patient.getCnic(),
+                        patient.getGender(),
+                        patient.getAge(),
+                        patient.getEmail()
+                });
+            }
+
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Load Patients",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+    
     private void configurePatientTable(JTable table) {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.getColumnModel().getColumn(0).setPreferredWidth(65);
@@ -134,29 +171,42 @@ public class RegisterPatientPanel extends JPanel {
             if (age <= 0) {
                 throw new IllegalArgumentException("Age must be greater than 0.");
             }
-            if (!email.contains("@") || !email.contains(".")) {
-                throw new IllegalArgumentException("Please enter a valid email address.");
-            }
 
-            /*
-             * Backend integration point:
-             * After your teammates update Patient, create something like:
-             * new Patient(name, cnic, gender, age, email)
-             * Then call PatientDAO/PatientService to save it.
-             */
+            receptionistService.addPatient(name, gender, age, email, cnic);
+
             JOptionPane.showMessageDialog(
                     this,
-                    "Patient data is valid. Backend saving will be connected later.",
-                    "Validation Successful",
+                    "Patient registered successfully.",
+                    "Success",
                     JOptionPane.INFORMATION_MESSAGE
             );
+
+            clearForm();
+            loadPatientsIntoTable();
+
         } catch (NumberFormatException exception) {
-            JOptionPane.showMessageDialog(this, "Age must be a number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Age must be a number.",
+                    "Validation Error",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
         } catch (IllegalArgumentException exception) {
-            JOptionPane.showMessageDialog(this, exception.getMessage(), "Validation Error", JOptionPane.WARNING_MESSAGE);
-        } catch (Exception exception) {
-            JOptionPane.showMessageDialog(this, "Could not register patient: " + exception.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Validation Error",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Registration Failed",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
