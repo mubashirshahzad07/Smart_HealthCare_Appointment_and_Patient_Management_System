@@ -21,6 +21,7 @@ public class Patient {
         this.age = age;
         this.name = name;
         this.cnic = cnic;
+        this.email = email;
     }
 
     public String getPatientId() {
