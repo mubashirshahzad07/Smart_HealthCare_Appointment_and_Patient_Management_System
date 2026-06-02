@@ -253,4 +253,16 @@ public class DoctorDAO {
             throw new RuntimeException("Failed to update doctor's appointment fee.");
         }
     }
+
+    public DoctorDTO getDoctorByUserId(String userId) {
+        ArrayList<DoctorDTO> doctors = getAllDoctors();
+
+        for (DoctorDTO doctor : doctors) {
+            if (doctor.getUserId().equals(userId)) {
+                return doctor;
+            }
+        }
+
+        throw new RuntimeException("Doctor is not registered.");
+    }
 }

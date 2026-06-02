@@ -245,4 +245,12 @@ public class AdminService {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
+
+    public void addReceptionist(String username, String name, String password, Receptionist.Shift shift) {
+        try {
+            receptionistDAO.addReceptionist(username, password, name, shift);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 }

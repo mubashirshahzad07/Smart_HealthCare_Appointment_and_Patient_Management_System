@@ -191,23 +191,7 @@ public class ReceptionistService {
 
     public DoctorDTO getDoctorByUserId(String userId) {
         try {
-            return doctorDAO.getDoctorByUserId(userId);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    public List<AppointmentDTO> getAppointmentsForDoctor(String doctorId) {
-        try {
-            return appointmentDAO.getAppointmentsForDoctor(doctorId);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    public List<AppointmentDTO> getPendingAppointmentsForDoctor(String doctorId) {
-        try {
-            return appointmentDAO.getPendingAppointmentsForDoctor(doctorId);
+            doctorDAO.getDoctorByUserId(userId);
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

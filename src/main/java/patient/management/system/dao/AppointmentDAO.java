@@ -759,4 +759,20 @@ public class AppointmentDAO {
 
         return String.join(", ", toEmails);
     }
+
+    public List<AppointmentDTO> getAppointmentsForDoctor(String doctorId) {
+        return getAppointments()
+            .stream()
+            .filter(appointment -> appointment.getDoctorId().equals(doctorId))
+            .toList();
+    }
+
+    public List<AppointmentDTO> getPendingAppointmentsForDoctor(String doctorId) {
+        return getAppointments()
+            .stream()
+            .filter(appointment -> appointment.getDoctorId().equals(doctorId))
+            .filter(appointment -> appointment.getStatus().equalsIgnoreCase("SCHEDULED"))
+            .filter(appointment -> appointment.getStatus().equalsIgnoreCase("RESCHEDULED"))
+            .toList();
+    }
 }
