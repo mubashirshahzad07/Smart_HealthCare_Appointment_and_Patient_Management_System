@@ -427,6 +427,11 @@ public class EmergencyCaseEntryPanel extends JPanel {
         }
     }
 
+    public void refreshPatients() {
+        clearForm();
+        loadPatients();
+    }
+
     private String selectedPatientId() {
         int selectedRow = patientTable.getSelectedRow();
         if (selectedRow < 0) {

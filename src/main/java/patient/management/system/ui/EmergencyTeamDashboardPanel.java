@@ -1,9 +1,13 @@
 package patient.management.system.ui;
 
-import patient.management.system.model.User;
+import patient.management.system.dto.EmergencyCaseDTO;
 import patient.management.system.model.EmergencyTeam;
+import patient.management.system.model.TriageColor;
+import patient.management.system.model.User;
+import patient.management.system.service.EmergencyTeamService;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
@@ -18,17 +22,30 @@ public class EmergencyTeamDashboardPanel extends JPanel {
     private final User loggedInUser;
     private final EmergencyTeam loggedInTeam;
     private final Color accentColor;
+    private final EmergencyTeamService emergencyTeamService;
+    private final JLabel activeCasesValue;
+    private final JLabel completedTodayValue;
+    private final JLabel movedToICUValue;
+    private final JLabel movedToWardValue;
+    private final DefaultTableModel caseModel;
 
     public EmergencyTeamDashboardPanel(User loggedInUser, EmergencyTeam loggedInTeam, Color accentColor) {
         super(new BorderLayout(18, 18));
         this.loggedInUser = loggedInUser;
         this.loggedInTeam = loggedInTeam;
         this.accentColor = accentColor;
+        this.emergencyTeamService = new EmergencyTeamService();
+        this.activeCasesValue = statValueLabel();
+        this.completedTodayValue = statValueLabel();
+        this.movedToICUValue = statValueLabel();
+        this.movedToWardValue = statValueLabel();
+        this.caseModel = buildCaseModel();
         setBackground(UITheme.BACKGROUND);
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
 
         add(buildHeader(), BorderLayout.NORTH);
         add(buildContent(), BorderLayout.CENTER);
+        refreshDashboard();
     }
 
     private JPanel buildHeader() {
@@ -57,14 +74,20 @@ public class EmergencyTeamDashboardPanel extends JPanel {
     private JPanel buildStatsPanel() {
         JPanel stats = new JPanel(new GridLayout(1, 4, 14, 14));
         stats.setOpaque(false);
-        stats.add(statCard("Active Cases", "08", UITheme.SOFT_BLUE, UITheme.BLUE));
-        stats.add(statCard("Completed Today", "05", UITheme.SOFT_GREEN, UITheme.SUCCESS));
-        stats.add(statCard("Moved to ICU", "02", UITheme.SOFT_YELLOW, UITheme.WARNING));
-        stats.add(statCard("Moved to Ward", "03", UITheme.SOFT_RED, UITheme.DANGER));
+        stats.add(statCard("Active Cases", activeCasesValue, UITheme.SOFT_BLUE, UITheme.BLUE));
+        stats.add(statCard("Completed Today", completedTodayValue, UITheme.SOFT_GREEN, UITheme.SUCCESS));
+        stats.add(statCard("Moved to ICU", movedToICUValue, UITheme.SOFT_YELLOW, UITheme.WARNING));
+        stats.add(statCard("Moved to Ward", movedToWardValue, UITheme.SOFT_RED, UITheme.DANGER));
         return stats;
     }
 
-    private JPanel statCard(String title, String value, Color background, Color foreground) {
+    private JLabel statValueLabel() {
+        JLabel valueLabel = new JLabel("00");
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        return valueLabel;
+    }
+
+    private JPanel statCard(String title, JLabel valueLabel, Color background, Color foreground) {
         JPanel card = AppUI.cardPanel();
         card.setBackground(background);
 
@@ -72,8 +95,6 @@ public class EmergencyTeamDashboardPanel extends JPanel {
         titleLabel.setFont(UITheme.LABEL_FONT);
         titleLabel.setForeground(UITheme.TEXT);
 
-        JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         valueLabel.setForeground(foreground);
 
         card.add(titleLabel, BorderLayout.NORTH);
@@ -85,23 +106,53 @@ public class EmergencyTeamDashboardPanel extends JPanel {
         JPanel card = AppUI.cardPanel();
         card.add(new JLabel("Emergency Cases"), BorderLayout.NORTH);
 
-        DefaultTableModel model = new DefaultTableModel(
-                new String[]{"Case ID", "Patient Name", "Age", "Gender", "Initial Complaint", "Arrival Time", "Status"},
-                0
-        );
-
-        /*
-         * Backend integration point:
-         * Later, load cases for loggedInUser.getTriageColor().
-         */
-        model.addRow(new Object[]{"E101", "Unknown Male", "45", "Male", "Chest pain", "2026-05-28 13:10", "ACTIVE"});
-        model.addRow(new Object[]{"E102", "Usman Shah", "33", "Male", "Severe headache", "2026-05-28 13:45", "ACTIVE"});
-        model.addRow(new Object[]{"E099", "Sara Ali", "24", "Female", "High fever", "2026-05-28 09:20", "COMPLETE"});
-
-        JTable table = AppUI.table(model);
+        JTable table = AppUI.table(caseModel);
         addStatusColors(table);
         card.add(AppUI.tableScrollPane(table), BorderLayout.CENTER);
         return card;
+    }
+
+    private DefaultTableModel buildCaseModel() {
+        return new DefaultTableModel(
+                new String[]{"Case ID", "Patient Name", "Age", "Gender", "Initial Complaint", "Arrival Time", "Status"},
+                0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+    }
+
+    public void refreshDashboard() {
+        try {
+            TriageColor triageColor = TriageColor.valueOf(loggedInTeam.getTriageColor());
+
+            activeCasesValue.setText(String.valueOf(emergencyTeamService.getActiveEmergencyCasesCount(triageColor)));
+            completedTodayValue.setText(String.valueOf(emergencyTeamService.getCompletedCasesTodayCount(triageColor)));
+            movedToICUValue.setText(String.valueOf(emergencyTeamService.getMovedToICUCount(triageColor)));
+            movedToWardValue.setText(String.valueOf(emergencyTeamService.getMovedToWardCount(triageColor)));
+
+            caseModel.setRowCount(0);
+            for (EmergencyCaseDTO emergencyCase : emergencyTeamService.getEmergencyCasesByTriageColor(triageColor)) {
+                caseModel.addRow(new Object[]{
+                        emergencyCase.getEmergencyCaseId(),
+                        emergencyCase.getPatientName(),
+                        emergencyCase.getAge(),
+                        emergencyCase.getGender(),
+                        emergencyCase.getInitialComplaint(),
+                        emergencyCase.getArrivalTime(),
+                        emergencyCase.getStatus()
+                });
+            }
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Load Dashboard",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     private void addStatusColors(JTable table) {

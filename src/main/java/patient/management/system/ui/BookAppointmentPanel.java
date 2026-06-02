@@ -210,6 +210,18 @@ public class BookAppointmentPanel extends JPanel {
         }
     }
 
+    public void refreshPatients() {
+        patientTable.clearSelection();
+        selectedPatientLabel.setText("No patient selected");
+        loadPatients();
+    }
+
+    public void refreshPanel() {
+        loadPatients();
+        loadDoctors();
+        clearForm();
+    }
+
     private void loadDoctors() {
         doctorBox.removeAllItems();
         try {

@@ -24,6 +24,7 @@ public class ReceptionistDashboardPanel extends JPanel {
     private final User loggedInUser;
     private final ReceptionistService receptionistService;
     private final NotificationService notificationService;
+    private JPanel centerPanel;
 
     public ReceptionistDashboardPanel() {
         this(null);
@@ -39,7 +40,16 @@ public class ReceptionistDashboardPanel extends JPanel {
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
 
         add(buildHeader(), BorderLayout.NORTH);
-        add(buildCenter(), BorderLayout.CENTER);
+        centerPanel = buildCenter();
+        add(centerPanel, BorderLayout.CENTER);
+    }
+
+    public void refreshDashboard() {
+        remove(centerPanel);
+        centerPanel = buildCenter();
+        add(centerPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
     }
 
     private JPanel buildHeader() {

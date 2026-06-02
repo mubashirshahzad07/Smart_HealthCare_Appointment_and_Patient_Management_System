@@ -1,6 +1,10 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.EmergencyCaseDTO;
+import patient.management.system.model.EmergencyTeam;
+import patient.management.system.model.TriageColor;
 import patient.management.system.model.User;
+import patient.management.system.service.EmergencyTeamService;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -12,7 +16,11 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -20,12 +28,19 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EmergencyMedicalRecordsPanel extends JPanel {
     private final User loggedInUser;
+    private final EmergencyTeam loggedInTeam;
     private final Color accentColor;
+    private final EmergencyTeamService emergencyTeamService;
+    private final List<EmergencyCaseDTO> displayedCases;
     private final DefaultTableModel caseModel;
     private final JTable caseTable;
+    private final TableRowSorter<DefaultTableModel> caseSorter;
+    private final JTextField searchField;
     private final JTextArea diagnosisArea;
     private final JTextArea treatmentArea;
     private final JTextArea prescriptionArea;
@@ -34,16 +49,38 @@ public class EmergencyMedicalRecordsPanel extends JPanel {
     private final JComboBox<String> outcomeBox;
     private final JLabel selectedCaseLabel;
 
-    public EmergencyMedicalRecordsPanel(User loggedInUser, Color accentColor) {
+    public EmergencyMedicalRecordsPanel(User loggedInUser, EmergencyTeam loggedInTeam, Color accentColor) {
         super(new BorderLayout(18, 18));
         this.loggedInUser = loggedInUser;
+        this.loggedInTeam = loggedInTeam;
         this.accentColor = accentColor;
+        this.emergencyTeamService = new EmergencyTeamService();
+        this.displayedCases = new ArrayList<>();
         setBackground(UITheme.BACKGROUND);
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
 
         caseModel = buildCaseModel();
         caseTable = AppUI.table(caseModel);
+        caseSorter = new TableRowSorter<>(caseModel);
+        caseTable.setRowSorter(caseSorter);
         configureCaseTable();
+        searchField = AppUI.textField("Search by case ID, patient name, or patient ID");
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent event) {
+                filterCases();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent event) {
+                filterCases();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent event) {
+                filterCases();
+            }
+        });
         diagnosisArea = AppUI.textArea("Diagnosis");
         treatmentArea = AppUI.textArea("Treatment given");
         prescriptionArea = AppUI.textArea("Prescription");
@@ -63,6 +100,7 @@ public class EmergencyMedicalRecordsPanel extends JPanel {
 
         add(buildHeader(), BorderLayout.NORTH);
         add(buildContent(), BorderLayout.CENTER);
+        loadActiveCases();
     }
 
     private JPanel buildHeader() {
@@ -131,7 +169,14 @@ public class EmergencyMedicalRecordsPanel extends JPanel {
         JPanel tableHeader = new JPanel(new BorderLayout(4, 4));
         tableHeader.setOpaque(false);
         tableHeader.add(new JLabel("Emergency Cases"), BorderLayout.NORTH);
-        tableHeader.add(AppUI.smallLabel("Select Patient / Case"), BorderLayout.CENTER);
+
+        JPanel searchPanel = new JPanel(new BorderLayout(4, 4));
+        searchPanel.setOpaque(false);
+        searchPanel.add(AppUI.smallLabel("Search Emergency Cases"), BorderLayout.NORTH);
+        searchPanel.add(searchField, BorderLayout.CENTER);
+
+        tableHeader.add(searchPanel, BorderLayout.CENTER);
+        tableHeader.add(AppUI.smallLabel("Select Patient / Case"), BorderLayout.SOUTH);
         caseTable.getSelectionModel().addListSelectionListener(event -> updateSelectedCase());
 
         JScrollPane scrollPane = AppUI.tableScrollPane(caseTable);
@@ -163,15 +208,66 @@ public class EmergencyMedicalRecordsPanel extends JPanel {
                 0
         );
 
-        /*
-         * Backend integration point:
-         * Later, load ACTIVE emergency cases for loggedInUser.getTriageColor().
-         * Linked cases should show complete patient info; unlinked temporary cases can show partial/unknown info.
-         */
-        model.addRow(new Object[]{"E101", "Unknown Male", "45", "Male", "Chest pain", "2026-05-28 13:10"});
-        model.addRow(new Object[]{"E102", "Usman Shah", "33", "Male", "Severe headache", "2026-05-28 13:45"});
-        model.addRow(new Object[]{"E103", "Unknown", "", "", "Road accident", "2026-05-28 14:05"});
         return model;
+    }
+
+    private void loadActiveCases() {
+        try {
+            caseModel.setRowCount(0);
+            displayedCases.clear();
+
+            TriageColor triageColor = TriageColor.valueOf(loggedInTeam.getTriageColor());
+            List<EmergencyCaseDTO> cases = emergencyTeamService.getEmergencyCasesByTriageColor(triageColor);
+
+            for (EmergencyCaseDTO emergencyCase : cases) {
+                if (!"ACTIVE".equalsIgnoreCase(emergencyCase.getStatus())) {
+                    continue;
+                }
+
+                displayedCases.add(emergencyCase);
+                caseModel.addRow(new Object[]{
+                        emergencyCase.getEmergencyCaseId(),
+                        emergencyCase.getPatientName(),
+                        emergencyCase.getAge(),
+                        emergencyCase.getGender(),
+                        emergencyCase.getInitialComplaint(),
+                        emergencyCase.getArrivalTime()
+                });
+            }
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Load Emergency Cases",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    private void filterCases() {
+        String query = searchField.getText().trim().toLowerCase();
+        if (query.isEmpty()) {
+            caseSorter.setRowFilter(null);
+            return;
+        }
+
+        caseSorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                int modelRow = entry.getIdentifier();
+                EmergencyCaseDTO emergencyCase = displayedCases.get(modelRow);
+
+                return containsIgnoreCase(emergencyCase.getEmergencyCaseId(), query)
+                        || containsIgnoreCase(emergencyCase.getPatientId(), query)
+                        || containsIgnoreCase(emergencyCase.getTemporaryPatientId(), query)
+                        || containsIgnoreCase(emergencyCase.getPatientName(), query)
+                        || containsIgnoreCase(emergencyCase.getInitialComplaint(), query);
+            }
+        });
+    }
+
+    private boolean containsIgnoreCase(String value, String query) {
+        return value != null && value.toLowerCase().contains(query);
     }
 
     private void configureCaseTable() {
@@ -205,21 +301,34 @@ public class EmergencyMedicalRecordsPanel extends JPanel {
                 throw new IllegalArgumentException("Select a case and fill all required fields.");
             }
 
-            /*
-             * Backend integration point:
-             * Create MedicalRecord:
-             * recordType = EMERGENCY
-             * handledBy = loggedInUser.getUsername()
-             * triageColor = loggedInUser.getTriageColor()
-             * emergencyCaseId = selected case
-             * recordDateTime = recordDateTimeField text / LocalDateTime.now()
-             * finalOutcome = outcomeBox selected value
-             * EmergencyCase.status = COMPLETED
-             */
+            int modelRow = caseTable.convertRowIndexToModel(caseTable.getSelectedRow());
+            EmergencyCaseDTO selectedCase = displayedCases.get(modelRow);
+
+            emergencyTeamService.updateEmergencyMedicalRecord(
+                    selectedCase.getEmergencyCaseId(),
+                    selectedCase.getPatientId(),
+                    selectedCase.getTemporaryPatientId(),
+                    loggedInTeam.getName(),
+                    diagnosisArea.getText().trim(),
+                    treatmentArea.getText().trim(),
+                    prescriptionArea.getText().trim(),
+                    notesArea.getText().trim(),
+                    TriageColor.valueOf(loggedInTeam.getTriageColor()),
+                    outcomeBox.getSelectedItem().toString()
+            );
+
             JOptionPane.showMessageDialog(this, "Emergency medical record saved.");
             clearForm();
+            loadActiveCases();
         } catch (IllegalArgumentException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Validation Error", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Save Medical Record",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 

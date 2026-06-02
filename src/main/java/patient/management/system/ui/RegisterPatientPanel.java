@@ -138,6 +138,10 @@ public class RegisterPatientPanel extends JPanel {
             );
         }
     }
+
+    public void refreshPatients() {
+        loadPatientsIntoTable();
+    }
     
     private void configurePatientTable(JTable table) {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);

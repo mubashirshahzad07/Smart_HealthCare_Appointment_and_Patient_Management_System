@@ -30,6 +30,12 @@ public class ReceptionistFrame extends JFrame {
     private final CardLayout cardLayout;
     private final JPanel contentPanel;
     private final Map<String, JButton> menuButtons;
+    private ReceptionistDashboardPanel dashboardPanel;
+    private RegisterPatientPanel registerPatientPanel;
+    private BookAppointmentPanel bookAppointmentPanel;
+    private ManageAppointmentsPanel manageAppointmentsPanel;
+    private EmergencyCaseEntryPanel emergencyCaseEntryPanel;
+    private LinkTemporaryPatientPanel linkTemporaryPatientPanel;
 
     public ReceptionistFrame(JFrame loginFrame, User user) {
         this.loginFrame = loginFrame;
@@ -99,18 +105,26 @@ public class ReceptionistFrame extends JFrame {
     }
 
     private JPanel buildCards() {
-        contentPanel.add(new ReceptionistDashboardPanel(loggedInUser), "DASHBOARD");
-        contentPanel.add(new RegisterPatientPanel(loggedInUser), "REGISTER_PATIENT");
-        contentPanel.add(new BookAppointmentPanel(loggedInUser), "BOOK_APPOINTMENT");
-        contentPanel.add(new ManageAppointmentsPanel(loggedInUser), "MANAGE_APPOINTMENTS");
-        contentPanel.add(new EmergencyCaseEntryPanel(loggedInUser), "CREATE_EMERGENCY");
-        contentPanel.add(new LinkTemporaryPatientPanel(loggedInUser), "LINK_TEMPORARY");
+        dashboardPanel = new ReceptionistDashboardPanel(loggedInUser);
+        registerPatientPanel = new RegisterPatientPanel(loggedInUser);
+        bookAppointmentPanel = new BookAppointmentPanel(loggedInUser);
+        manageAppointmentsPanel = new ManageAppointmentsPanel(loggedInUser);
+        emergencyCaseEntryPanel = new EmergencyCaseEntryPanel(loggedInUser);
+        linkTemporaryPatientPanel = new LinkTemporaryPatientPanel(loggedInUser);
+
+        contentPanel.add(dashboardPanel, "DASHBOARD");
+        contentPanel.add(registerPatientPanel, "REGISTER_PATIENT");
+        contentPanel.add(bookAppointmentPanel, "BOOK_APPOINTMENT");
+        contentPanel.add(manageAppointmentsPanel, "MANAGE_APPOINTMENTS");
+        contentPanel.add(emergencyCaseEntryPanel, "CREATE_EMERGENCY");
+        contentPanel.add(linkTemporaryPatientPanel, "LINK_TEMPORARY");
         return contentPanel;
     }
 
     private void addMenuButton(JPanel sidebar, String label, String cardName, int row) {
         JButton button = sidebarButton(label);
         button.addActionListener(event -> {
+            refreshCard(cardName);
             cardLayout.show(contentPanel, cardName);
             setActiveMenu(cardName);
         });
@@ -122,6 +136,22 @@ public class ReceptionistFrame extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(4, 0, 4, 0);
         sidebar.add(button, gbc);
+    }
+
+    private void refreshCard(String cardName) {
+        if ("DASHBOARD".equals(cardName)) {
+            dashboardPanel.refreshDashboard();
+        } else if ("REGISTER_PATIENT".equals(cardName)) {
+            registerPatientPanel.refreshPatients();
+        } else if ("BOOK_APPOINTMENT".equals(cardName)) {
+            bookAppointmentPanel.refreshPanel();
+        } else if ("MANAGE_APPOINTMENTS".equals(cardName)) {
+            manageAppointmentsPanel.refreshAppointments();
+        } else if ("CREATE_EMERGENCY".equals(cardName)) {
+            emergencyCaseEntryPanel.refreshPatients();
+        } else if ("LINK_TEMPORARY".equals(cardName)) {
+            linkTemporaryPatientPanel.refreshPatients();
+        }
     }
 
     private JButton sidebarButton(String text) {

@@ -29,6 +29,7 @@ public class EmergencyTeamFrame extends JFrame {
     private final CardLayout cardLayout;
     private final JPanel contentPanel;
     private final Map<String, JButton> menuButtons;
+    private EmergencyTeamDashboardPanel dashboardPanel;
 
     public EmergencyTeamFrame(JFrame loginFrame, User loggedInUser, EmergencyTeam loggedInTeam) {
         this.loginFrame = loginFrame;
@@ -97,14 +98,18 @@ public class EmergencyTeamFrame extends JFrame {
     }
 
     private JPanel buildCards() {
-        contentPanel.add(new EmergencyTeamDashboardPanel(loggedInUser, loggedInTeam, accentColor), "DASHBOARD");
-        contentPanel.add(new EmergencyMedicalRecordsPanel(loggedInUser, accentColor), "MEDICAL_RECORDS");
+        dashboardPanel = new EmergencyTeamDashboardPanel(loggedInUser, loggedInTeam, accentColor);
+        contentPanel.add(dashboardPanel, "DASHBOARD");
+        contentPanel.add(new EmergencyMedicalRecordsPanel(loggedInUser, loggedInTeam, accentColor), "MEDICAL_RECORDS");
         return contentPanel;
     }
 
     private void addMenuButton(JPanel sidebar, String label, String cardName, int row) {
         JButton button = sidebarButton(label);
         button.addActionListener(event -> {
+            if ("DASHBOARD".equals(cardName) && dashboardPanel != null) {
+                dashboardPanel.refreshDashboard();
+            }
             cardLayout.show(contentPanel, cardName);
             setActiveMenu(cardName);
         });

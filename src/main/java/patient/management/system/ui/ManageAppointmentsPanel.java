@@ -210,6 +210,11 @@ public class ManageAppointmentsPanel extends JPanel {
         }
     }
 
+    public void refreshAppointments() {
+        clearForm();
+        loadAppointments();
+    }
+
     private boolean isManageable(String status) {
         return "SCHEDULED".equalsIgnoreCase(status) || "RESCHEDULED".equalsIgnoreCase(status);
     }

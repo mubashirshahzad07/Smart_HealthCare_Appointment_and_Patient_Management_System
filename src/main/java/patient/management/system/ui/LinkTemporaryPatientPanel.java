@@ -386,6 +386,12 @@ public class LinkTemporaryPatientPanel extends JPanel {
         }
     }
 
+    public void refreshPatients() {
+        clearScreen();
+        loadTemporaryPatients();
+        loadRegisteredPatients();
+    }
+
     private void registerAndLink() {
         try {
             if (tempTable.getSelectedRow() < 0
