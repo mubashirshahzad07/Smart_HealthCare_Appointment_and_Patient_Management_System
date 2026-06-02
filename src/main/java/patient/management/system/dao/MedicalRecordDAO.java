@@ -17,7 +17,7 @@ import java.util.List;
 import java.time.LocalDate;
 
 public class MedicalRecordDAO {
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
     private final File medicalRecordsFile = new File("data/medical_records.json");
 
     public void addRegularMedicalRecord(
@@ -49,7 +49,9 @@ public class MedicalRecordDAO {
         medicalRecords.add(medicalRecord);
 
         try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(medicalRecordsFile, medicalRecords);
+            File tempFile = new File("data/medical_records_tmp.json");
+            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+            tempFile.renameTo(medicalRecordsFile);
         } catch (IOException e) {
             throw new RuntimeException("Unable to create medical record.");
         }
@@ -76,8 +78,11 @@ public class MedicalRecordDAO {
                 medicalRecord.setRecordDateTime(LocalDateTime.now());
 
                 try {
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(medicalRecordsFile, medicalRecords);
+                    File tempFile = new File("data/medical_records_tmp.json");
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+                    tempFile.renameTo(medicalRecordsFile);
                 } catch (IOException e) {
+                    e.printStackTrace();
                     throw new RuntimeException("Unable to create medical record.");
                 }
 
@@ -123,7 +128,9 @@ public class MedicalRecordDAO {
         medicalRecords.add(medicalRecord);
 
         try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(medicalRecordsFile, medicalRecords);
+            File tempFile = new File("data/medical_records_tmp.json");
+            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+            tempFile.renameTo(medicalRecordsFile);
         } catch (IOException e) {
             throw new RuntimeException("Unable to create medical record.");
         }
@@ -154,7 +161,9 @@ public class MedicalRecordDAO {
                 medicalRecord.setRecordStatus(RecordStatus.COMPLETED);
 
                 try {
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(medicalRecordsFile, medicalRecords);
+                    File tempFile = new File("data/medical_records_tmp.json");
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+                    tempFile.renameTo(medicalRecordsFile);
                 } catch (IOException e) {
                     throw new RuntimeException("Unable to update medical record.");
                 }
@@ -180,9 +189,8 @@ public class MedicalRecordDAO {
             );
 
         } catch (IOException e) {
-            throw new RuntimeException(
-                    "Unable to load medical records."
-            );
+            e.printStackTrace();
+            throw new RuntimeException("Unable to load medical records.");
         }
     }
 
@@ -199,6 +207,7 @@ public class MedicalRecordDAO {
             );
 
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("Unable to load medical records.");
         }
     }
@@ -222,7 +231,9 @@ public class MedicalRecordDAO {
         }
 
         try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(medicalRecordsFile, medicalRecords);
+            File tempFile = new File("data/medical_records_tmp.json");
+            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+            tempFile.renameTo(medicalRecordsFile);
         } catch (IOException e) {
             throw new RuntimeException("Unable to update linked patient.");
         }
@@ -233,8 +244,8 @@ public class MedicalRecordDAO {
         return (int) getMedicalRecordsInternal()
                 .stream()
                 .filter(record -> record.getRecordType() == RecordType.EMERGENCY)
-                .filter(record -> record.getTriageColor() == triagecolor)
-                .filter(record -> record.getRecordStatus() == RecordStatus.COMPLETED)
+                .filter(record -> record.getTriageColor().equalsIgnoreCase(triagecolor.toString()))
+                .filter(record -> record.getRecordStatus().equalsIgnoreCase("COMPLETED"))
                 .filter(record -> LocalDateTime.parse(record.getRecordDateTime()).toLocalDate().equals(LocalDate.now()))
                 .count();
     }
@@ -247,7 +258,9 @@ public class MedicalRecordDAO {
                 record.setHandledBy(doctorName);
 
                 try {
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(medicalRecordsFile, records);
+                    File tempFile = new File("data/medical_records_tmp.json");
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, records);
+                    tempFile.renameTo(medicalRecordsFile);
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to update medical record.");
                 }
@@ -260,7 +273,7 @@ public class MedicalRecordDAO {
                 .stream()
                 .filter(record -> record.getRecordType() == RecordType.REGULAR)
                 .filter(record -> doctorName.equals(record.getHandledBy()))
-                .filter(record -> record.getRecordStatus() == RecordStatus.PENDING)
+                .filter(record -> record.getRecordStatus().equalsIgnoreCase("PENDING"))
                 .count();
     }
 

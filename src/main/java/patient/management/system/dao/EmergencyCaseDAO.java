@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EmergencyCaseDAO {
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
     private final File emergencyCasesFile = new File("data/emergency_cases.json");
     private final PatientDAO patientDAO = new PatientDAO();
 
@@ -100,6 +100,7 @@ public class EmergencyCaseDAO {
 
     private ArrayList<EmergencyCase> getEmergencyCasesInternal() {
 
+        System.out.println(mapper.getRegisteredModuleIds());
         try {
             if (!emergencyCasesFile.exists() || emergencyCasesFile.length() == 0) {
                 return new ArrayList<>();
@@ -111,7 +112,8 @@ public class EmergencyCaseDAO {
                     });
 
         } catch (IOException e) {
-            throw new RuntimeException("Unable to load emergency cases.");
+            e.printStackTrace();
+            throw new RuntimeException("Unable to load emergency cases from { internal }.");
         }
     }
 
@@ -129,6 +131,7 @@ public class EmergencyCaseDAO {
                     });
 
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("Unable to load emergency cases.");
         }
     }

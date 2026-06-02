@@ -27,7 +27,8 @@ public class EmergencyCase {
         MOVED_TO_WARD
     }
 
-    public EmergencyCase() {}
+    public EmergencyCase() {
+    }
 
     public EmergencyCase(
             String patientId,
@@ -84,7 +85,7 @@ public class EmergencyCase {
         this.temporaryPatientId = temporaryPatientId;
     }
 
-    public boolean isTemporaryPatient() {
+    public boolean getIsTemporaryPatient() {
         return isTemporaryPatient;
     }
 
@@ -124,8 +125,8 @@ public class EmergencyCase {
         this.cnic = cnic;
     }
 
-    public LocalDateTime getArrivalTime() {
-        return arrivalTime;
+    public String getArrivalTime() {
+        return arrivalTime.toString();
     }
 
     public void setArrivalTime(LocalDateTime arrivalTime) {
@@ -140,8 +141,8 @@ public class EmergencyCase {
         this.initialComplaint = initialComplaint;
     }
 
-    public TriageColor getTriageColor() {
-        return triageColor;
+    public String getTriageColor() {
+        return triageColor.toString();
     }
 
     public void setTriageColor(TriageColor triageColor) {

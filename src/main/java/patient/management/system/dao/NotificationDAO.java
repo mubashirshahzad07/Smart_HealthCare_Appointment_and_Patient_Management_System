@@ -65,7 +65,7 @@ public class NotificationDAO {
         try {
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(to));
-            message.setSubject("Hello");
+            message.setSubject("Confirmation / Reminder");
             message.setText(notficationMessage);
             Transport.send(message);
         } catch (MessagingException e) {

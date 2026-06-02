@@ -29,6 +29,8 @@ public class MedicalRecord {
         EMERGENCY
     }
 
+    public MedicalRecord() {}
+    
     public MedicalRecord(
             String medicalRecordId,
             String patientId,
@@ -150,8 +152,9 @@ public class MedicalRecord {
         this.notes = notes;
     }
 
-    public TriageColor getTriageColor() {
-        return triageColor;
+    public String getTriageColor() {
+        if (triageColor == null) return null;
+        return triageColor.toString();
     }
 
     public void setTriageColor(TriageColor triageColor) {
@@ -166,8 +169,8 @@ public class MedicalRecord {
         this.recordDateTime = recordDateTime;
     }
 
-    public RecordStatus getRecordStatus() {
-        return recordStatus;
+    public String getRecordStatus() {
+        return recordStatus.toString();
     }
 
     public void setRecordStatus(RecordStatus recordStatus) {
