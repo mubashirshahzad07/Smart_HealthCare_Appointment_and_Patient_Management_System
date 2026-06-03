@@ -1,14 +1,14 @@
 package patient.management.system.service;
 
-import patient.management.system.dao.AppointmentDAO;
-import patient.management.system.dao.MedicalRecordDAO;
-import patient.management.system.dto.MedicalRecordDTO;
+import patient.management.system.dao.*;
+import patient.management.system.dto.*;
 
 import java.util.List;
 
 public class DoctorService {
     private final MedicalRecordDAO medicalRecordDAO = new MedicalRecordDAO();
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
+    private final DoctorDAO doctorDAO = new DoctorDAO();
 
     public void updateMedicalRecord(
         String appointmentId,
@@ -43,5 +43,21 @@ public class DoctorService {
 
     public int getPendingRecordsCount(String doctorName) {
         return medicalRecordDAO.getRegularPendingRecordsCount(doctorName);
+    }
+
+    public DoctorDTO getDoctorByUserId(String userId) {
+        try {
+            return new DoctorDAO().getDoctorByUserId(userId);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<AppointmentDTO> getAppointmentsForDoctor(String doctorId) {
+        try {
+            return appointmentDAO.getAppointmentsForDoctor(doctorId);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 }

@@ -771,8 +771,7 @@ public class AppointmentDAO {
         return getAppointments()
             .stream()
             .filter(appointment -> appointment.getDoctorId().equals(doctorId))
-            .filter(appointment -> appointment.getStatus().equalsIgnoreCase("SCHEDULED"))
-            .filter(appointment -> appointment.getStatus().equalsIgnoreCase("RESCHEDULED"))
+            .filter(appointment -> appointment.getStatus().equalsIgnoreCase("SCHEDULED") || appointment.getStatus().equalsIgnoreCase("RESCHEDULED"))
             .toList();
     }
 }
