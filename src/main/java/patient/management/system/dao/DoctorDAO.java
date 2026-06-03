@@ -2,6 +2,7 @@ package patient.management.system.dao;
 
 import patient.management.system.dto.DoctorDTO;
 import patient.management.system.model.Doctor;
+import patient.management.system.model.DoctorSchedule;
 import patient.management.system.model.Role;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -86,7 +87,7 @@ public class DoctorDAO {
         }
     }
 
-    public ArrayList<DoctorDTO> getAllDoctors() {
+    private ArrayList<DoctorDTO> getAllDoctorsPrivate() {
 
         try {
 
@@ -102,6 +103,19 @@ public class DoctorDAO {
         } catch (IOException e) {
             throw new RuntimeException("Unable to load doctors data.");
         }
+    }
+
+    public ArrayList<DoctorDTO> getAllDoctors() {
+
+        ArrayList<DoctorDTO> doctors = getAllDoctorsPrivate();
+        DoctorScheduleDAO scheduleDAO = new DoctorScheduleDAO();
+        
+        for (DoctorDTO doctor : doctors) {
+            List<DoctorSchedule> schedules = scheduleDAO.getDoctorSchedules(doctor.getDoctorId());
+            doctor.setSchedules(schedules);
+        }
+
+        return doctors;
     }
 
     private void usernameAvailable(List<Doctor> doctors, String username) {

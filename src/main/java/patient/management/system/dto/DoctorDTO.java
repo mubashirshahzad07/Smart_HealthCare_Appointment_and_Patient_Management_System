@@ -1,5 +1,9 @@
 package patient.management.system.dto;
 
+import patient.management.system.model.*;
+
+import java.util.*;
+
 public class DoctorDTO {
     private String userId;
     private String username;
@@ -8,11 +12,20 @@ public class DoctorDTO {
     private String specialization;
     private double appointmentFee;
     private boolean isActive;
+    private List<DoctorSchedule> schedules;
 
     public DoctorDTO() {}
 
     public String getUserId() {
         return userId;
+    }
+
+    public List<DoctorSchedule> getSchedules() {
+        return schedules;
+    }
+
+    public void setSchedules(List<DoctorSchedule> schedules) {
+        this.schedules = schedules;
     }
 
     public String getUsername() {
