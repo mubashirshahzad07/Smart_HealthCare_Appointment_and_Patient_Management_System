@@ -462,7 +462,7 @@ public class AppointmentDAO {
 
         String patientEmail = patientDAO.getEmail(targetAppointment.getPatientId()).get();
         NotificationDAO.sendEmail(patientEmail, NotificationDAO.RESCHEDULE_CONFIRMATION);
-        medicalRecordDAO.resheduleMedicalRecord(appointmentId, doctorName);
+        medicalRecordDAO.rescheduleMedicalRecord(appointmentId, doctorName);
     }
 
     private void rescheduleFollowingAppointments(ArrayList<Appointment> appointments, String vacantDate, int vacantHour,

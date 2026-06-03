@@ -300,11 +300,11 @@ public class EmergencyCaseDAO {
                     .count();
 
             int movedToICU = (int) colorCases.stream()
-                    .filter(c -> "moved to icu".equalsIgnoreCase(c.getFinalOutcome()))
+                    .filter(c -> "MOVED_TO_ICU".equalsIgnoreCase(c.getFinalOutcome()))
                     .count();
 
             int deceased = (int) colorCases.stream()
-                    .filter(c -> "DECEASED".equalsIgnoreCase(c.getFinalOutcome()))
+                    .filter(c -> "MOVED_TO_WARD".equalsIgnoreCase(c.getFinalOutcome()))
                     .count();
 
             report.add(new EmergencyReportDTO(triageColor.name(), totalCases, completed, movedToICU, deceased));

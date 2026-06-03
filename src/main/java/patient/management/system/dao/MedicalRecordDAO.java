@@ -11,6 +11,8 @@ import patient.management.system.model.MedicalRecord.RecordStatus;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +51,17 @@ public class MedicalRecordDAO {
         medicalRecords.add(medicalRecord);
 
         try {
-            File tempFile = new File("data/medical_records_tmp.json");
-            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-            tempFile.renameTo(medicalRecordsFile);
+//            File tempFile = new File("data/medical_records_tmp.json");
+//            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+//            tempFile.renameTo(medicalRecordsFile);
+            File tempFile = new File("data", "medical_records_tmp.json");
+            mapper.writerWithDefaultPrettyPrinter()
+                    .writeValue(tempFile, medicalRecords);
+            Files.move(
+                    tempFile.toPath(),
+                    medicalRecordsFile.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+            );
         } catch (IOException e) {
             throw new RuntimeException("Unable to create medical record.");
         }
@@ -78,9 +88,17 @@ public class MedicalRecordDAO {
                 medicalRecord.setRecordDateTime(LocalDateTime.now());
 
                 try {
-                    File tempFile = new File("data/medical_records_tmp.json");
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-                    tempFile.renameTo(medicalRecordsFile);
+//                    File tempFile = new File("data/medical_records_tmp.json");
+//                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+//                    tempFile.renameTo(medicalRecordsFile);
+                    File tempFile = new File("data", "medical_records_tmp.json");
+                    mapper.writerWithDefaultPrettyPrinter()
+                            .writeValue(tempFile, medicalRecords);
+                    Files.move(
+                            tempFile.toPath(),
+                            medicalRecordsFile.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING
+                    );
                 } catch (IOException e) {
                     e.printStackTrace();
                     throw new RuntimeException("Unable to create medical record.");
@@ -128,9 +146,18 @@ public class MedicalRecordDAO {
         medicalRecords.add(medicalRecord);
 
         try {
-            File tempFile = new File("data/medical_records_tmp.json");
-            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-            tempFile.renameTo(medicalRecordsFile);
+//            File tempFile = new File("data/medical_records_tmp.json");
+//            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+//            tempFile.renameTo(medicalRecordsFile);
+            File tempFile = new File("data", "medical_records_tmp.json");
+            mapper.writerWithDefaultPrettyPrinter()
+                    .writeValue(tempFile, medicalRecords);
+            Files.move(
+                    tempFile.toPath(),
+                    medicalRecordsFile.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
         } catch (IOException e) {
             throw new RuntimeException("Unable to create medical record.");
         }
@@ -161,9 +188,17 @@ public class MedicalRecordDAO {
                 medicalRecord.setRecordStatus(RecordStatus.COMPLETED);
 
                 try {
-                    File tempFile = new File("data/medical_records_tmp.json");
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-                    tempFile.renameTo(medicalRecordsFile);
+//                    File tempFile = new File("data/medical_records_tmp.json");
+//                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+//                    tempFile.renameTo(medicalRecordsFile);
+                    File tempFile = new File("data", "medical_records_tmp.json");
+                    mapper.writerWithDefaultPrettyPrinter()
+                            .writeValue(tempFile, medicalRecords);
+                    Files.move(
+                            tempFile.toPath(),
+                            medicalRecordsFile.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING
+                    );
                 } catch (IOException e) {
                     throw new RuntimeException("Unable to update medical record.");
                 }
@@ -231,9 +266,17 @@ public class MedicalRecordDAO {
         }
 
         try {
-            File tempFile = new File("data/medical_records_tmp.json");
-            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-            tempFile.renameTo(medicalRecordsFile);
+//            File tempFile = new File("data/medical_records_tmp.json");
+//            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
+//            tempFile.renameTo(medicalRecordsFile);
+            File tempFile = new File("data", "medical_records_tmp.json");
+            mapper.writerWithDefaultPrettyPrinter()
+                    .writeValue(tempFile, medicalRecords);
+            Files.move(
+                    tempFile.toPath(),
+                    medicalRecordsFile.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+            );
         } catch (IOException e) {
             throw new RuntimeException("Unable to update linked patient.");
         }
@@ -250,7 +293,7 @@ public class MedicalRecordDAO {
                 .count();
     }
 
-    public void resheduleMedicalRecord(String appointmentId, String doctorName) {
+    public void rescheduleMedicalRecord(String appointmentId, String doctorName) {
         ArrayList<MedicalRecord> records = getMedicalRecordsInternal();
 
         for (MedicalRecord record : records) {
@@ -258,9 +301,16 @@ public class MedicalRecordDAO {
                 record.setHandledBy(doctorName);
 
                 try {
-                    File tempFile = new File("data/medical_records_tmp.json");
+//                    File tempFile = new File("data/medical_records_tmp.json");
+//                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, records);
+//                    tempFile.renameTo(medicalRecordsFile);
+                    File tempFile = new File("data", "medical_records_tmp.json");
                     mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, records);
-                    tempFile.renameTo(medicalRecordsFile);
+                    Files.move(
+                            tempFile.toPath(),
+                            medicalRecordsFile.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING
+                    );
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to update medical record.");
                 }
