@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import patient.management.system.dto.EmergencyCaseDTO;
 import patient.management.system.dto.EmergencyReportDTO;
 import patient.management.system.model.EmergencyCase;
+import patient.management.system.model.Patient;
 import patient.management.system.model.TriageColor;
 
 import java.io.File;
@@ -254,9 +255,35 @@ public class EmergencyCaseDAO {
     }
 
     public void registerAndLinkTemporaryPatient(String emergencyId, String patientName, int age, String gender, String phoneNumber, String cnic, String email) {
-        String patientId = new PatientDAO().addPatient(patientName, gender, age, email, cnic).getPatientId();
+        Patient  patient = new PatientDAO().addPatient(patientName, gender, age, email, cnic);
 
-        linkTemporaryPatient(emergencyId, patientId);
+        // linkTemporaryPatient(emergencyId, patientId);
+
+        new PatientDAO().patientRegistered(patient.getPatientId());
+
+        ArrayList<EmergencyCase> emergencyCases = getEmergencyCasesInternal();
+
+        for (EmergencyCase emergencyCase : emergencyCases) {
+            if (emergencyCase.getEmergencyCaseId().equals(emergencyId)) {
+                emergencyCase.setPatientId(patient.getPatientId());
+                emergencyCase.setIsTemporaryPatient(false);
+                emergencyCase.setAge(patient.getAge());
+                emergencyCase.setCnic(patient.getCnic());
+                emergencyCase.setPatientName(patient.getName());
+
+                try {
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(emergencyCasesFile, emergencyCases);
+                } catch (IOException e) {
+                    throw new RuntimeException("Unable to link patient.");
+                }
+
+                new MedicalRecordDAO().updateTemporaryPatientLink(emergencyCase.getTemporaryPatientId(),patient.getPatientId());
+
+                return;
+            }
+        }
+
+        throw new RuntimeException("Emergency case not found.");
     }
 
     public int getTemporaryLinksCount() {
