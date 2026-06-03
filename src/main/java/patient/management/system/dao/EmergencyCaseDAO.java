@@ -304,7 +304,7 @@ public class EmergencyCaseDAO {
                     .count();
 
             int deceased = (int) colorCases.stream()
-                    .filter(c -> "MOVED_TO_WARD".equalsIgnoreCase(c.getFinalOutcome()))
+                    .filter(c -> "DECEASED".equalsIgnoreCase(c.getFinalOutcome()))
                     .count();
 
             report.add(new EmergencyReportDTO(triageColor.name(), totalCases, completed, movedToICU, deceased));
@@ -320,7 +320,7 @@ public class EmergencyCaseDAO {
                 .toList();
 
         return (int) colorCases.stream()
-                .filter(c -> "moved to icu".equalsIgnoreCase(c.getFinalOutcome()))
+                .filter(c -> "MOVED_TO_ICU".equalsIgnoreCase(c.getFinalOutcome()))
                 .count();
     }
 
@@ -331,7 +331,7 @@ public class EmergencyCaseDAO {
                 .toList();
 
         return (int) colorCases.stream()
-                .filter(c -> "moved to ward".equalsIgnoreCase(c.getFinalOutcome()))
+                .filter(c -> "MOVED_TO_WARD".equalsIgnoreCase(c.getFinalOutcome()))
                 .count();
     }
 }
