@@ -331,6 +331,7 @@ public class MedicalRecordDAO {
         return getMedicalRecords()
             .stream()
             .filter(record -> patientId.equals(record.getPatientId()))
+            .filter(record -> record.getRecordStatus().equalsIgnoreCase("COMPLETED"))
             .toList();
     }
 

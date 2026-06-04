@@ -68,11 +68,11 @@ public class DoctorService {
         return appointmentDAO.getPendingMedicalRecordAppointments(doctorId);
     }
 
-    public List<MedicalRecordDTO> getPatientHistoryForDoctor(String doctorId) {
-        if (doctorId == null || doctorId.isEmpty()) {
-            throw new RuntimeException("Doctor ID is required.");
+    public List<MedicalRecordDTO> getPatientHistoryForDoctor(String patientId) {
+        if (patientId == null || patientId.isEmpty()) {
+            throw new RuntimeException("Patient ID is required.");
         }
 
-        return medicalRecordDAO.getPatientHistoryForDoctor(doctorId);
+        return medicalRecordDAO.getPatientHistory(patientId);
     }
 }
