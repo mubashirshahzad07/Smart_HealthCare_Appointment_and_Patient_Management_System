@@ -831,4 +831,13 @@ public class AppointmentDAO {
 
         return availableSlots;
     }
+
+    public List<AppointmentDTO> getPendingMedicalRecordAppointments(String doctorId) {
+        return getAppointments()
+                .stream()
+                .filter(appointment -> appointment.getDoctorId().equals(doctorId))
+                .filter(appointment -> appointment.getStatus().equalsIgnoreCase("SCHEDULED")
+                        || appointment.getStatus().equalsIgnoreCase("RESCHEDULED"))
+                .toList();
+    }
 }

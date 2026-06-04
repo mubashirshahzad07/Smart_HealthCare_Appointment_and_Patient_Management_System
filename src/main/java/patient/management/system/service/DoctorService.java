@@ -8,7 +8,6 @@ import java.util.List;
 public class DoctorService {
     private final MedicalRecordDAO medicalRecordDAO = new MedicalRecordDAO();
     private final AppointmentDAO appointmentDAO = new AppointmentDAO();
-    private final DoctorDAO doctorDAO = new DoctorDAO();
 
     public void updateMedicalRecord(
         String appointmentId,
@@ -59,5 +58,21 @@ public class DoctorService {
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    public List<AppointmentDTO> getPendingMedicalRecordAppointments(String doctorId) {
+        if (doctorId == null || doctorId.isEmpty()) {
+            throw new RuntimeException("Doctor ID is required.");
+        }
+
+        return appointmentDAO.getPendingMedicalRecordAppointments(doctorId);
+    }
+
+    public List<MedicalRecordDTO> getPatientHistoryForDoctor(String doctorId) {
+        if (doctorId == null || doctorId.isEmpty()) {
+            throw new RuntimeException("Doctor ID is required.");
+        }
+
+        return medicalRecordDAO.getPatientHistoryForDoctor(doctorId);
     }
 }

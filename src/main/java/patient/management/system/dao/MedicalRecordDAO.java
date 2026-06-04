@@ -340,4 +340,13 @@ public class MedicalRecordDAO {
                 .anyMatch(record -> appointmentId.equals(record.getAppointmentId()) 
                                     && RecordStatus.valueOf(record.getRecordStatus()) == RecordStatus.COMPLETED);
     }
+
+    public List<MedicalRecordDTO> getPatientHistoryForDoctor(String doctorId) {
+
+        return getMedicalRecords()
+                .stream()
+                .filter(record -> doctorId.equals(record.getHandledBy()))
+                .filter(record -> record.getRecordStatus().equalsIgnoreCase("COMPLETED"))
+                .toList();
+    }
 }
