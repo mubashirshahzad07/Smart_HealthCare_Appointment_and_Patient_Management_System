@@ -70,7 +70,7 @@ public class DoctorService {
 
     public List<PatientHistoryDTO> getPatientHistoryForDoctor(String doctorId) {
         if (doctorId == null || doctorId.isEmpty()) {
-            throw new RuntimeException("Patient ID is required.");
+            throw new RuntimeException("Doctor ID is required.");
         }
 
         return medicalRecordDAO.getPatientHistoryForDoctor(doctorId);

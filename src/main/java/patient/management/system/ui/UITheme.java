@@ -12,10 +12,12 @@ public final class UITheme {
     public static final Color BLUE = new Color(0x1E6BD6);
     public static final Color SUCCESS = new Color(0x14966B);
     public static final Color WARNING = new Color(0xE6A700);
+    public static final Color ORANGE = new Color(0xD97800);
     public static final Color DANGER = new Color(0xD94C4C);
     public static final Color SOFT_BLUE = new Color(0xE9F3FF);
     public static final Color SOFT_GREEN = new Color(0xE8F8F0);
     public static final Color SOFT_YELLOW = new Color(0xFFF7DD);
+    public static final Color SOFT_ORANGE = new Color(0xFFF0E0);
     public static final Color SOFT_RED = new Color(0xFFECEC);
     public static final Color TEXT = new Color(0x1D2B3A);
     public static final Color MUTED_TEXT = new Color(0x6B7785);

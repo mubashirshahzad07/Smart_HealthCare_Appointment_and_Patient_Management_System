@@ -182,6 +182,9 @@ public class DoctorDashboardPanel extends JPanel {
                 } else if (status.equals("RESCHEDULED")) {
                     component.setBackground(UITheme.SOFT_YELLOW);
                     component.setForeground(new Color(0x9A6A00));
+                } else if (status.equals("MISSED")) {
+                    component.setBackground(UITheme.SOFT_ORANGE);
+                    component.setForeground(UITheme.ORANGE);
                 } else if (status.equals("SCHEDULED")) {
                     component.setBackground(UITheme.SOFT_BLUE);
                     component.setForeground(UITheme.BLUE);
