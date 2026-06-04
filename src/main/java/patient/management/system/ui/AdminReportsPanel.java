@@ -1,9 +1,14 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.AppointmentReportDTO;
+import patient.management.system.dto.EmergencyReportDTO;
+import patient.management.system.service.AdminService;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -13,25 +18,31 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.util.List;
 
 public class AdminReportsPanel extends JPanel {
+    private final AdminService adminService = new AdminService();
+
     public AdminReportsPanel() {
         setLayout(new BorderLayout());
+        
         JPanel panel = AdminUI.basePanel("View Reports", "Hospital activity summary: appointments, finances, and emergency statistics");
 
         JPanel cards = new JPanel(new GridLayout(2, 4, 14, 14));
         cards.setBackground(AdminUI.LIGHT);
-        cards.add(AdminUI.infoCard("Total Appointments", "124", AdminUI.BLUE));
-        cards.add(AdminUI.infoCard("Canceled", "18", AdminUI.RED));
-        cards.add(AdminUI.infoCard("Rescheduled", "12", AdminUI.ORANGE));
-        cards.add(AdminUI.infoCard("Fees Collected", "PKR 186,500", AdminUI.GREEN));
-        cards.add(AdminUI.infoCard("Total Refunds", "8", AdminUI.PURPLE));
-        cards.add(AdminUI.infoCard("Net Amount", "PKR 172,100", AdminUI.ORANGE));
-        cards.add(AdminUI.infoCard("Emergency Cases", "31", AdminUI.RED));
-        cards.add(AdminUI.infoCard("Unlinked Temp Patients", "7", AdminUI.NAVY));
+
+        cards.add(AdminUI.infoCard("Total Appointments", String.valueOf(adminService.getTotalBookedAppointmentsCount()), AdminUI.BLUE));
+        cards.add(AdminUI.infoCard("Canceled", String.valueOf(adminService.getTotalCancelledAppointmentsCount()), AdminUI.RED));
+        cards.add(AdminUI.infoCard("Rescheduled", String.valueOf(adminService.getTotalRescheduledAppointmentsCount()), AdminUI.ORANGE));
+        cards.add(AdminUI.infoCard("Fees Collected", "PKR " + adminService.getTotalFeesCollected(), AdminUI.GREEN));
+        cards.add(AdminUI.infoCard("Total Refunds", String.valueOf(adminService.getTotalRefundsCount()), AdminUI.PURPLE));
+        cards.add(AdminUI.infoCard("Net Amount", "PKR " + adminService.getNetAmount(), AdminUI.ORANGE));
+        cards.add(AdminUI.infoCard("Emergency Cases", String.valueOf(adminService.getTotalEmergencyCasesCount()), AdminUI.RED));
+        cards.add(AdminUI.infoCard("Unlinked Temp Patients", String.valueOf(adminService.getTemporaryLinksCount()), AdminUI.NAVY));
 
         JButton appointmentReportButton = AdminUI.actionButton("Appointment Report", AdminUI.BLUE);
         JButton emergencyReportButton = AdminUI.actionButton("Emergency Report", AdminUI.BLUE);
+
         appointmentReportButton.addActionListener(event -> showAppointmentReportDialog());
         emergencyReportButton.addActionListener(event -> showEmergencyReportDialog());
 
@@ -50,40 +61,74 @@ public class AdminReportsPanel extends JPanel {
     }
 
     private void showAppointmentReportDialog() {
-        String[] columns = {"Doctor", "Total Appointments", "Completed", "Canceled", "Rescheduled"};
-        Object[][] data = {
-                {"Dr. Ahmed Khan", "38", "28", "6", "4"},
-                {"Dr. Sara Ali", "32", "22", "5", "5"},
-                {"Dr. Bilal Sheikh", "29", "20", "4", "5"},
-                {"Dr. Hina Noor", "25", "18", "3", "4"}
-        };
-        showReportDialog("Appointment Report Summary", columns, data, -1);
-    }
+        String[] columns = {"Doctor ID", "Doctor Name", "Total Appointments", "Completed", "Canceled", "Rescheduled"};
 
-    private void showEmergencyReportDialog() {
-        String[] columns = {"Triage Color", "Total Cases", "Completed", "Moved to ICU", "Deceased"};
-        Object[][] data = {
-                {"RED (Immediate)", "14", "8", "4", "2"},
-                {"YELLOW (Delayed)", "9", "7", "1", "1"},
-                {"GREEN (Minor)", "6", "6", "0", "0"},
-                {"BLACK (Deceased)", "2", "0", "0", "2"}
-        };
-        showReportDialog("Emergency Report Summary", columns, data, 0);
-    }
-
-    private void showReportDialog(String title, String[] columns, Object[][] data, int triageColumn) {
-        JDialog dialog = new JDialog((java.awt.Frame) null, title, true);
-        dialog.setSize(820, 420);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new BorderLayout());
-
-        DefaultTableModel model = new DefaultTableModel(data, columns) {
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
+
+        try {
+            List<AppointmentReportDTO> reports = adminService.getAppointmentReports();
+
+            for (AppointmentReportDTO report : reports) {
+                model.addRow(new Object[]{
+                        report.getDoctorId(),
+                        report.getDoctorName(),
+                        report.getTotalAppointments(),
+                        report.getCompletedAppointments(),
+                        report.getCancelledAppointments(),
+                        report.getRescheduledAppointments()
+                });
+            }
+
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Appointment Report Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        showReportDialog("Appointment Report Summary", model, -1);
+    }
+
+    private void showEmergencyReportDialog() {
+        String[] columns = {"Triage Color", "Total Cases", "Completed", "Moved to ICU", "Deceased"};
+
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        try {
+            List<EmergencyReportDTO> reports = adminService.getEmergencyReport();
+
+            for (EmergencyReportDTO report : reports) {
+                model.addRow(new Object[]{
+                        report.getTriageColor(),
+                        report.getTotalCases(),
+                        report.getCompleted(),
+                        report.getMovedToICU(),
+                        report.getDeceased()
+                });
+            }
+
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Emergency Report Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        showReportDialog("Emergency Report Summary", model, 0);
+    }
+
+    private void showReportDialog(String title, DefaultTableModel model, int triageColumn) {
+        JDialog dialog = new JDialog((java.awt.Frame) null, title, true);
+        dialog.setSize(820, 420);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
         JTable table = AdminUI.table(model);
+
         if (triageColumn >= 0) {
             table.getColumnModel().getColumn(triageColumn).setCellRenderer(new AdminUI.TriageRenderer());
         }
@@ -94,6 +139,7 @@ public class AdminReportsPanel extends JPanel {
         JPanel header = new JPanel();
         header.setBackground(AdminUI.NAVY);
         header.setPreferredSize(new Dimension(820, 52));
+
         JLabel headerLabel = new JLabel(title);
         headerLabel.setFont(UITheme.HEADING_FONT);
         headerLabel.setForeground(Color.WHITE);

@@ -1,31 +1,48 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.EmergencyTeamDTO;
+import patient.management.system.service.AdminService;
+
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.util.List;
 
 public class AdminTeamsPanel extends JPanel {
+    private final AdminService adminService = new AdminService();
+
     public AdminTeamsPanel() {
         setLayout(new BorderLayout());
         JPanel panel = AdminUI.basePanel("Emergency Teams", "View emergency response teams and triage assignments");
 
         String[] columns = {"Team ID", "Team Name", "Username", "Triage Color"};
-        Object[][] data = {
-                {"ET-001", "Red Emergency Team", "red_team", "RED"},
-                {"ET-002", "Yellow Emergency Team", "yellow_team", "YELLOW"},
-                {"ET-003", "Green Emergency Team", "green_team", "GREEN"},
-                {"ET-004", "Black Emergency Team", "black_team", "BLACK"}
-        };
 
-        DefaultTableModel model = new DefaultTableModel(data, columns) {
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
+
+        try {
+            List<EmergencyTeamDTO> teams = adminService.getEmergencyTeams();
+
+            for (EmergencyTeamDTO team : teams) {
+                model.addRow(new Object[]{
+                        team.getTeamId(),
+                        team.getName(),
+                        team.getUsername(),
+                        team.getTriageColor()
+                });
+            }
+
+        } catch (RuntimeException e) {
+            model.addRow(new Object[]{"", "Unable to load teams", e.getMessage(), ""});
+        }
+
         JTable table = AdminUI.table(model);
         table.getColumnModel().getColumn(3).setCellRenderer(new AdminUI.TriageRenderer());
 

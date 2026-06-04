@@ -84,6 +84,7 @@ public class AdminFrame extends JFrame {
 
         JButton logoutButton = sidebarButton("Logout");
         logoutButton.addActionListener(event -> logout());
+
         gbc.gridy = 7;
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.SOUTH;
@@ -105,10 +106,12 @@ public class AdminFrame extends JFrame {
 
     private void addMenuButton(JPanel sidebar, String label, String cardName, int row) {
         JButton button = sidebarButton(label);
+
         button.addActionListener(event -> {
             cardLayout.show(contentPanel, cardName);
             setActiveMenu(cardName);
         });
+
         menuButtons.put(cardName, button);
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -148,17 +151,28 @@ public class AdminFrame extends JFrame {
                 }
             }
         });
+
         return button;
     }
 
     private void setActiveMenu(String activeCard) {
         for (Map.Entry<String, JButton> entry : menuButtons.entrySet()) {
-            entry.getValue().setBackground(entry.getKey().equals(activeCard) ? AdminUI.BLUE : AdminUI.SIDEBAR_BUTTON);
+            entry.getValue().setBackground(
+                    entry.getKey().equals(activeCard)
+                            ? AdminUI.BLUE
+                            : AdminUI.SIDEBAR_BUTTON
+            );
         }
     }
 
     private void logout() {
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to logout?", "Logout", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to logout?",
+                "Logout",
+                JOptionPane.YES_NO_OPTION
+        );
+
         if (confirm == JOptionPane.YES_OPTION) {
             dispose();
             loginFrame.setVisible(true);

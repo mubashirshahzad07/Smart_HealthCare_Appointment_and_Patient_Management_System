@@ -58,6 +58,7 @@ final class AdminUI {
 
         top.add(titleLabel);
         top.add(subLabel);
+
         panel.add(top, BorderLayout.NORTH);
         return panel;
     }
@@ -90,6 +91,7 @@ final class AdminUI {
 
         card.add(bar, BorderLayout.NORTH);
         card.add(body, BorderLayout.CENTER);
+
         return card;
     }
 
@@ -111,9 +113,11 @@ final class AdminUI {
 
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
+
         for (int i = 0; i < table.getColumnCount(); i++) {
             table.getColumnModel().getColumn(i).setCellRenderer(center);
         }
+
         return table;
     }
 
@@ -126,6 +130,7 @@ final class AdminUI {
         scrollPane.getViewport().setBackground(WHITE);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
         return scrollPane;
     }
 
@@ -147,8 +152,11 @@ final class AdminUI {
         label.setFont(UITheme.LABEL_FONT);
         label.setForeground(UITheme.TEXT);
 
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
+        TableRowSorter<DefaultTableModel> sorter =
+                new TableRowSorter<>((DefaultTableModel) table.getModel());
+
         table.setRowSorter(sorter);
+
         search.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent event) {
                 filter();
@@ -164,7 +172,12 @@ final class AdminUI {
 
             private void filter() {
                 String query = search.getText().trim();
-                sorter.setRowFilter(query.isEmpty() ? null : RowFilter.regexFilter("(?i)" + query, searchColumns));
+
+                if (query.isEmpty()) {
+                    sorter.setRowFilter(null);
+                } else {
+                    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + query, searchColumns));
+                }
             }
         });
 
@@ -172,6 +185,7 @@ final class AdminUI {
         input.setBackground(LIGHT);
         input.add(label, BorderLayout.NORTH);
         input.add(search, BorderLayout.CENTER);
+
         bar.add(input, BorderLayout.CENTER);
         return bar;
     }
@@ -179,9 +193,11 @@ final class AdminUI {
     static JPanel buttonBar(JButton... buttons) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 8));
         panel.setBackground(LIGHT);
+
         for (JButton button : buttons) {
             panel.add(button);
         }
+
         return panel;
     }
 
@@ -193,6 +209,7 @@ final class AdminUI {
         button.setFocusPainted(false);
         button.setPreferredSize(new Dimension(170, 36));
         button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
+
         return button;
     }
 
@@ -200,19 +217,27 @@ final class AdminUI {
         JLabel label = new JLabel(text);
         label.setFont(UITheme.LABEL_FONT);
         label.setForeground(NAVY);
+
         return label;
     }
 
     static class StatusRenderer extends DefaultTableCellRenderer {
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                       boolean hasFocus, int row, int column) {
+        public Component getTableCellRendererComponent(
+                JTable table,
+                Object value,
+                boolean isSelected,
+                boolean hasFocus,
+                int row,
+                int column
+        ) {
             JLabel label = new JLabel(value == null ? "" : value.toString(), SwingConstants.CENTER);
             label.setOpaque(true);
             label.setFont(UITheme.BUTTON_FONT);
             label.setForeground(Color.WHITE);
 
             String status = label.getText().toLowerCase();
+
             if (status.contains("available") || status.equals("active")) {
                 label.setBackground(GREEN);
             } else if (status.contains("busy")) {
@@ -222,20 +247,28 @@ final class AdminUI {
             } else {
                 label.setBackground(Color.GRAY);
             }
+
             return label;
         }
     }
 
     static class TriageRenderer extends DefaultTableCellRenderer {
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                       boolean hasFocus, int row, int column) {
+        public Component getTableCellRendererComponent(
+                JTable table,
+                Object value,
+                boolean isSelected,
+                boolean hasFocus,
+                int row,
+                int column
+        ) {
             JLabel label = new JLabel(value == null ? "" : value.toString(), SwingConstants.CENTER);
             label.setOpaque(true);
             label.setFont(UITheme.BUTTON_FONT);
             label.setForeground(Color.WHITE);
 
             String color = label.getText().toUpperCase();
+
             if (color.contains("RED")) {
                 label.setBackground(new Color(0xC0392B));
             } else if (color.contains("YELLOW")) {
@@ -247,6 +280,7 @@ final class AdminUI {
             } else {
                 label.setBackground(BLUE);
             }
+
             return label;
         }
     }
