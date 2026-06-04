@@ -631,62 +631,6 @@ public class AppointmentDAO {
         return result;
     }
 
-    public ArrayList<String> getDoctorAvailableSlotsThisWeek(String doctorId) {
-
-        ArrayList<Appointment> appointments = getAppointmentsInternal();
-        List<DoctorSchedule> schedules = scheduleDAO.getSchedules();
-        ArrayList<String> availableSlots = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-
-        for (int i = 0; i < 7; i++) {
-
-            LocalDate currentDate = today.plusDays(i);
-            DoctorSchedule.Day currentDay = DoctorSchedule.Day.valueOf(currentDate.getDayOfWeek().name());
-            ArrayList<Integer> freeSlots = new ArrayList<>();
-
-            for (DoctorSchedule schedule : schedules) {
-
-                boolean sameDoctor = schedule.getDoctorId().equals(doctorId);
-                boolean sameDay = (schedule.getDay() == currentDay);
-
-                if (sameDoctor && sameDay) {
-
-                    if (schedule.getShift() == DoctorSchedule.Shift.MORNING) {
-
-                        for (int hour = 9; hour < 15; hour++) {
-                            freeSlots.add(hour);
-                        }
-
-                    } else if (schedule.getShift() == DoctorSchedule.Shift.EVENING) {
-
-                        for (int hour = 15; hour < 21; hour++) {
-                            freeSlots.add(hour);
-                        }
-                    }
-                }
-            }
-
-            String formattedDate = currentDate.toString();
-
-            for (Appointment appointment : appointments) {
-
-                boolean appointmentMatches = 
-                appointment.getDoctorId().equals(doctorId)
-                && appointment.getAppointmentDate().equals(formattedDate);
-
-                if (appointmentMatches) {
-                    freeSlots.remove(Integer.valueOf(appointment.getAppointmentHour()));
-                }
-            }
-
-            for (Integer hour : freeSlots) {
-                availableSlots.add(currentDay + ", " + formattedDate + " - " + String.format("%02d", hour) + ":00");
-            }
-        }
-
-        return availableSlots;
-    }
-
     public int getTodayAppointmentsCount() {
 
         String today = LocalDate.now().toString();
@@ -832,5 +776,59 @@ public class AppointmentDAO {
             .filter(appointment -> appointment.getDoctorId().equals(doctorId))
             .filter(appointment -> appointment.getStatus().equalsIgnoreCase("SCHEDULED") || appointment.getStatus().equalsIgnoreCase("RESCHEDULED"))
             .toList();
+    }
+
+    public ArrayList<String> getDoctorAvailableSlotsThisWeek(String doctorId) {
+        ArrayList<Appointment> appointments = getAppointmentsInternal();
+        List<DoctorSchedule> schedules = scheduleDAO.getSchedules();
+        ArrayList<String> availableSlots = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+
+        for (int i = 0; i < 7; i++) {
+
+            LocalDate currentDate = today.plusDays(i);
+
+            DoctorSchedule.Day currentDay = DoctorSchedule.Day.valueOf(currentDate.getDayOfWeek().name());
+
+            ArrayList<Integer> freeSlots = new ArrayList<>();
+
+            for (DoctorSchedule schedule : schedules) {
+
+                if (schedule.getDoctorId().equals(doctorId) && schedule.getDay() == currentDay) {
+
+                    if (schedule.getShift() == DoctorSchedule.Shift.MORNING) {
+
+                        for (int hour = 9; hour < 15; hour++) {
+                            freeSlots.add(hour);
+                        }
+
+                    } else {
+
+                        for (int hour = 15; hour < 21; hour++) {
+                            freeSlots.add(hour);
+                        }
+                    }
+                }
+            }
+
+            for (Appointment appointment : appointments) {
+
+                if (appointment.getDoctorId().equals(doctorId) && appointment.getAppointmentDate().equals(currentDate.toString())) {
+                    freeSlots.remove(Integer.valueOf(appointment.getAppointmentHour()));
+                }
+            }
+
+            for (Integer hour : freeSlots) {
+
+                LocalDateTime slotTime = currentDate.atTime(hour, 0);
+                if (slotTime.isBefore(LocalDateTime.now())) {
+                    continue;
+                }
+
+                availableSlots.add(currentDay + ", " + currentDate + " - " + String.format("%02d", hour) + ":00");
+            }
+        }
+
+        return availableSlots;
     }
 }
