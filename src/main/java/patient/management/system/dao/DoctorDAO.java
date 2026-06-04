@@ -196,15 +196,20 @@ public class DoctorDAO {
      * @param id doctorId or userId
      */
     public void activateDoctor(String id) {
-        ArrayList<Doctor> inactiveDoctors = getInactiveDoctorsInternal();
 
-        for (Doctor activeDoctor : inactiveDoctors) {
-            if (activeDoctor.getDoctorId().equals(id) || activeDoctor.getUserId().equals(id)) {
+        ArrayList<Doctor> doctors = getAllDoctorsInternal();
+        for (Doctor doctor : doctors) {
 
-                activeDoctor.setIsActive(true);
+            if (doctor.getDoctorId().equals(id) || doctor.getUserId().equals(id)) {
+
+                if (doctor.getIsActive()) {
+                    throw new RuntimeException("Doctor is already active.");
+                }
+
+                doctor.setIsActive(true);
 
                 try {
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, inactiveDoctors);
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, doctors);
                 } catch (IOException e) {
                     throw new RuntimeException("Unable to activate doctor.");
                 }
@@ -213,22 +218,28 @@ public class DoctorDAO {
             }
         }
 
-        throw new RuntimeException("Doctor is unregistered or active.");
+        throw new RuntimeException("Doctor not found.");
     }
 
     /**
      * @param id doctorId or userId
      */
     public void inactivateDoctor(String id) {
-        ArrayList<Doctor> activeDoctors = getActiveDoctorsInternal();
 
-        for (Doctor activeDoctor : activeDoctors) {
-            if (activeDoctor.getDoctorId().equals(id) || activeDoctor.getUserId().equals(id)) {
+        ArrayList<Doctor> doctors = getAllDoctorsInternal();
 
-                activeDoctor.setIsActive(false);
+        for (Doctor doctor : doctors) {
+
+            if (doctor.getDoctorId().equals(id) ||doctor.getUserId().equals(id)) {
+
+                if (!doctor.getIsActive()) {
+                    throw new RuntimeException("Doctor is already inactive.");
+                }
+
+                doctor.setIsActive(false);
 
                 try {
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, activeDoctors);
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, doctors);
                 } catch (IOException e) {
                     throw new RuntimeException("Unable to inactivate doctor.");
                 }
@@ -237,7 +248,7 @@ public class DoctorDAO {
             }
         }
 
-        throw new RuntimeException("Doctor is unregistered or inactive.");
+        throw new RuntimeException("Doctor not found.");
     }
 
     public double getDoctorAppointmentFee(String doctorId) {

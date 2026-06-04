@@ -54,6 +54,23 @@ public class ReceptionistDAO {
         }
     }
 
+    private ArrayList<Receptionist> getAllReceptionistsInternal() {
+
+        try {
+            if (!file.exists() || file.length() == 0) {
+                return new ArrayList<>();
+            }
+
+            return mapper.readValue(
+                    file,
+                    new TypeReference<ArrayList<Receptionist>>() {
+                    });
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load receptionists data.");
+        }
+    }
+
     public List<ReceptionistDTO> getAllReceptionists() {
 
         try {
@@ -117,47 +134,52 @@ public class ReceptionistDAO {
      * @param id receptionistId or userId
      */
     public void activateReceptionist(String id) {
-        ArrayList<Receptionist> activeReceptionists = getActiveReceptionistsInternal();
 
-        for (Receptionist activeReceptionist : activeReceptionists) {
-            if (activeReceptionist.getUserId().equals(id) || activeReceptionist.getReceptionistId().equals(id)) {
-                activeReceptionist.setIsActive(true);
+        ArrayList<Receptionist> receptionists = getAllReceptionistsInternal();
 
-                try {
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, activeReceptionists);
-                } catch (IOException e) {
-                    throw new RuntimeException("Unable to activate receptionist.");
+        for (Receptionist receptionist : receptionists) {
+
+            if (receptionist.getUserId().equals(id) || receptionist.getReceptionistId().equals(id)) {
+
+                if (receptionist.getIsActive()) {
+                    throw new RuntimeException("Receptionist is already active.");
                 }
 
-                return;
+                receptionist.setIsActive(true);
 
+                save(receptionists);
+
+                return;
             }
         }
 
-        throw new RuntimeException("Receptionist is unregistered or active.");
+        throw new RuntimeException(
+                "Receptionist not found.");
     }
 
     /**
      * @param id receptionistId or userId
      */
     public void inactivateReceptionist(String id) {
-        ArrayList<Receptionist> inactiveReceptionists = getActiveReceptionistsInternal();
 
-        for (Receptionist inactiveReceptionist : inactiveReceptionists) {
-            if (inactiveReceptionist.getUserId().equals(id) || inactiveReceptionist.getReceptionistId().equals(id)) {
-                inactiveReceptionist.setIsActive(false);
+        ArrayList<Receptionist> receptionists = getAllReceptionistsInternal();
 
-                try {
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(file, inactiveReceptionists);
-                } catch (IOException e) {
-                    throw new RuntimeException("Unable to activate receptionist.");
+        for (Receptionist receptionist : receptionists) {
+
+            if (receptionist.getUserId().equals(id) || receptionist.getReceptionistId().equals(id)) {
+
+                if (!receptionist.getIsActive()) {
+                    throw new RuntimeException("Receptionist is already inactive.");
                 }
+
+                receptionist.setIsActive(false);
+                save(receptionists);
 
                 return;
             }
         }
 
-        throw new RuntimeException("Receptionist is unregistered or inactive.");
+        throw new RuntimeException("Receptionist not found.");
     }
 
     public void usernameAvailable(ArrayList<Receptionist> receptionists, String username) {
@@ -190,6 +212,14 @@ public class ReceptionistDAO {
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to load receptionists data.");
+        }
+    }
+
+    private void save(ArrayList<Receptionist> receptionists) {
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(file, receptionists);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to save receptionists.");
         }
     }
 }
