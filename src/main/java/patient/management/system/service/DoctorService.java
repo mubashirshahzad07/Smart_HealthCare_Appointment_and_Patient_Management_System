@@ -24,7 +24,7 @@ public class DoctorService {
         }
     }
 
-    public List<MedicalRecordDTO> getPatientHistory(String patientId) {
+    public List<PatientHistoryDTO> getPatientHistory(String patientId) {
         return medicalRecordDAO.getPatientHistory(patientId);
     }
 
@@ -68,7 +68,7 @@ public class DoctorService {
         return appointmentDAO.getPendingMedicalRecordAppointments(doctorId);
     }
 
-    public List<MedicalRecordDTO> getPatientHistoryForDoctor(String patientId) {
+    public List<PatientHistoryDTO> getPatientHistoryForDoctor(String patientId) {
         if (patientId == null || patientId.isEmpty()) {
             throw new RuntimeException("Patient ID is required.");
         }

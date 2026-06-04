@@ -3,8 +3,10 @@ package patient.management.system.dao;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import patient.management.system.dto.PatientHistoryDTO;
 import patient.management.system.dto.MedicalRecordDTO;
 import patient.management.system.model.MedicalRecord;
+import patient.management.system.model.Patient;
 import patient.management.system.model.TriageColor;
 import patient.management.system.model.MedicalRecord.RecordType;
 import patient.management.system.model.MedicalRecord.RecordStatus;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.time.LocalDate;
 
 public class MedicalRecordDAO {
+    private final PatientDAO patientDAO = new PatientDAO();
     private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
     private final File medicalRecordsFile = new File("data/medical_records.json");
 
@@ -327,12 +330,28 @@ public class MedicalRecordDAO {
                 .count();
     }
 
-    public List<MedicalRecordDTO> getPatientHistory(String patientId) {
+    public List<PatientHistoryDTO> getPatientHistory(String patientId) {
         return getMedicalRecords()
-            .stream()
-            .filter(record -> patientId.equals(record.getPatientId()))
-            .filter(record -> record.getRecordStatus().equalsIgnoreCase("COMPLETED"))
-            .toList();
+                .stream()
+                .filter(record -> patientId.equals(record.getPatientId()))
+                .filter(record -> record.getRecordStatus().equalsIgnoreCase("COMPLETED"))
+                .map(record -> {
+                    PatientHistoryDTO history = new PatientHistoryDTO();
+
+                    history.setMedicalRecordId(record.getMedicalRecordId());
+                    history.setPatientId(record.getPatientId());
+                    history.setPatientName(patientDAO.getPatientById(patientId).getName());
+                    history.setRecordDateTime(record.getRecordDateTime());
+                    history.setRecordType(record.getRecordType());
+                    history.setHandledBy(record.getHandledBy());
+                    history.setDiagnosis(record.getDiagnosis());
+                    history.setTreatmentGiven(record.getTreatmentGiven());
+                    history.setPrescription(record.getPrescription());
+                    history.setNotes(record.getNotes());
+
+                    return history;
+                })
+                .toList();
     }
 
     public boolean isMedicalRecordCompleted(String appointmentId) {

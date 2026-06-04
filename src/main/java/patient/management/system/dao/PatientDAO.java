@@ -120,4 +120,12 @@ public class PatientDAO {
             .map(patient -> patient.getEmail())
             .findFirst();
     }
+
+    public Patient getPatientById(String patientId) {
+        return getPatientsInternal()
+                .stream()
+                .filter(patient -> patientId.equals(patient.getPatientId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Patient not found."));
+    }
 }
