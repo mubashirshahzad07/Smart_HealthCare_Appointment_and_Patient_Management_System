@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import patient.management.system.dto.PatientHistoryDTO;
 import patient.management.system.dto.MedicalRecordDTO;
 import patient.management.system.model.MedicalRecord;
-import patient.management.system.model.Patient;
 import patient.management.system.model.TriageColor;
 import patient.management.system.model.MedicalRecord.RecordType;
 import patient.management.system.model.MedicalRecord.RecordStatus;
