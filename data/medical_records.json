@@ -1,0 +1,16 @@
+[ {
+  "medicalRecordId" : "MR0001",
+  "patientId" : "PT0001",
+  "temporaryPatientId" : null,
+  "appointmentId" : "APPT0001",
+  "emergencyCaseId" : null,
+  "recordType" : "REGULAR",
+  "handledBy" : "Dr. Ayesha Malik",
+  "diagnosis" : null,
+  "treatmentGiven" : null,
+  "prescription" : null,
+  "notes" : null,
+  "triageColor" : null,
+  "recordDateTime" : "2026-06-04T19:18:25.733637987",
+  "recordStatus" : "PENDING"
+} ]

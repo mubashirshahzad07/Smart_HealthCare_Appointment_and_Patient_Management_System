@@ -1,0 +1,13 @@
+[ {
+  "appointmentId" : "APPT0001",
+  "appointmentDate" : "2026-06-05",
+  "appointmentHour" : 10,
+  "patientId" : "PT0001",
+  "doctorId" : "DR0005",
+  "receptionistId" : "RECPT0001",
+  "patientDescription" : "constipation",
+  "status" : "SCHEDULED",
+  "doctorName" : "Dr. Ayesha Malik",
+  "patientName" : "Mujadad Puttar",
+  "willingToReschedule" : true
+} ]
