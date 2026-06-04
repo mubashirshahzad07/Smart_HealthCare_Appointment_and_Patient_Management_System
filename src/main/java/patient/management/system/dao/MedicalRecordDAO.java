@@ -333,4 +333,11 @@ public class MedicalRecordDAO {
             .filter(record -> patientId.equals(record.getPatientId()))
             .toList();
     }
+
+    public boolean isMedicalRecordCompleted(String appointmentId) {
+        return getMedicalRecordsInternal()
+                .stream()
+                .anyMatch(record -> appointmentId.equals(record.getAppointmentId()) 
+                                    && RecordStatus.valueOf(record.getRecordStatus()) == RecordStatus.COMPLETED);
+    }
 }

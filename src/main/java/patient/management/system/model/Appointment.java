@@ -19,7 +19,8 @@ public class Appointment {
         SCHEDULED,
         RESCHEDULED,
         COMPLETED,
-        IN_PROGRESS
+        IN_PROGRESS,
+        MISSED
     }
 
     public Appointment() {}

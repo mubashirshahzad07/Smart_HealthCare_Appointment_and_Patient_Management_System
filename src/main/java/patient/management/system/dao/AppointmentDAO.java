@@ -230,30 +230,69 @@ public class AppointmentDAO {
      * updates the status of appointments
      */
     private void updateAppointmentStatus() {
+
         ArrayList<Appointment> appointments = loadAppointments();
-        final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.now();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean changed = false;
 
         for (Appointment appointment : appointments) {
 
             LocalDateTime appointmentStart = LocalDate.parse(appointment.getAppointmentDate())
-            .atTime(appointment.getAppointmentHour(), 0);
+                    .atTime(
+                            appointment.getAppointmentHour(),
+                            0);
+
             LocalDateTime appointmentEnd = appointmentStart.plusHours(1);
 
-            boolean isCompleted = !CURRENT_DATE_TIME.isBefore(appointmentEnd);
-            boolean isInProgress = !CURRENT_DATE_TIME.isBefore(appointmentStart)
-            && CURRENT_DATE_TIME.isBefore(appointmentEnd);
+            boolean isInProgress = !now.isBefore(appointmentStart)
+                    && now.isBefore(appointmentEnd);
 
-            if (isCompleted) {
-                appointment.setStatus(Appointment.Status.COMPLETED);
-            } else if (isInProgress) {
-                appointment.setStatus(Appointment.Status.IN_PROGRESS);
+            boolean isPast = now.isAfter(appointmentEnd);
+
+            if (isInProgress) {
+
+                appointment.setStatus(
+                        Appointment.Status.IN_PROGRESS);
+
+                changed = true;
+            }
+
+            if (isPast) {
+
+                boolean recordCompleted = medicalRecordDAO
+                        .isMedicalRecordCompleted(
+                                appointment.getAppointmentId());
+
+                if (recordCompleted) {
+
+                    appointment.setStatus(
+                            Appointment.Status.COMPLETED);
+
+                } else {
+
+                    appointment.setStatus(
+                            Appointment.Status.MISSED);
+                }
+
+                changed = true;
             }
         }
 
-        try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(appointmentsFile, appointments);
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to update appointments.");
+        if (changed) {
+            try {
+
+                mapper.writerWithDefaultPrettyPrinter()
+                        .writeValue(
+                                appointmentsFile,
+                                appointments);
+
+            } catch (IOException e) {
+
+                throw new RuntimeException(
+                        "Unable to update appointments.");
+            }
         }
     }
 
@@ -394,7 +433,15 @@ public class AppointmentDAO {
         }
 
         String patientEmail = patientDAO.getEmail(targetAppointment.getPatientId()).get();
-        NotificationDAO.sendEmail(patientEmail, NotificationDAO.CANCEL_CONFIRMATION);
+
+        Thread cancelEmailThread = new Thread() {
+            @Override
+            public void run() {
+                NotificationDAO.sendEmail(patientEmail, NotificationDAO.CANCEL_CONFIRMATION);
+            }
+        };
+        cancelEmailThread.start();
+
         setNetAmountCollected(-refund);
         incrementTotalRefundsCount();
     }
@@ -426,7 +473,7 @@ public class AppointmentDAO {
         }
 
         boolean reschedulable = targetAppointment.getStatus().equals(Appointment.Status.SCHEDULED.toString())
-        || targetAppointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
+                || targetAppointment.getStatus().equals(Appointment.Status.RESCHEDULED.toString());
 
         if (!reschedulable) {
             throw new RuntimeException("Appointment cannot be rescheduled.");
@@ -438,10 +485,14 @@ public class AppointmentDAO {
         rescheduledAppointments.add(mapper.convertValue(targetAppointment, Appointment.class));
         appointments.remove(targetAppointment);
 
-        slotAvailable(
-            appointments,
-            String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay),
-            appointmentHour, doctorId);
+        String newDate = String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay);
+        LocalDateTime selectedSlot = LocalDate.parse(newDate).atTime(appointmentHour, 0);
+
+        if (selectedSlot.isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Cannot reschedule appointment to a past time.");
+        }
+
+        slotAvailable(appointments, newDate, appointmentHour, doctorId);
 
         targetAppointment.setAppointmentDate(String.format("%d-%02d-%02d", appointmentYear, appointmentMonth, appointmentDay));
         targetAppointment.setAppointmentHour(appointmentHour);
@@ -461,7 +512,15 @@ public class AppointmentDAO {
         }
 
         String patientEmail = patientDAO.getEmail(targetAppointment.getPatientId()).get();
-        NotificationDAO.sendEmail(patientEmail, NotificationDAO.RESCHEDULE_CONFIRMATION);
+        
+        Thread rescheduleEmailThread = new Thread() {
+            @Override
+            public void run() {
+                NotificationDAO.sendEmail(patientEmail, NotificationDAO.RESCHEDULE_CONFIRMATION);
+            }
+        };
+        rescheduleEmailThread.start();
+
         medicalRecordDAO.rescheduleMedicalRecord(appointmentId, doctorName);
     }
 
