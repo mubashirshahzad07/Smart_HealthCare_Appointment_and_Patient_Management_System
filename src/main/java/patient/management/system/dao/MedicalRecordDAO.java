@@ -53,9 +53,6 @@ public class MedicalRecordDAO {
         medicalRecords.add(medicalRecord);
 
         try {
-//            File tempFile = new File("data/medical_records_tmp.json");
-//            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-//            tempFile.renameTo(medicalRecordsFile);
             File tempFile = new File("data", "medical_records_tmp.json");
             mapper.writerWithDefaultPrettyPrinter()
                     .writeValue(tempFile, medicalRecords);
@@ -90,9 +87,6 @@ public class MedicalRecordDAO {
                 medicalRecord.setRecordDateTime(LocalDateTime.now());
 
                 try {
-//                    File tempFile = new File("data/medical_records_tmp.json");
-//                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-//                    tempFile.renameTo(medicalRecordsFile);
                     File tempFile = new File("data", "medical_records_tmp.json");
                     mapper.writerWithDefaultPrettyPrinter()
                             .writeValue(tempFile, medicalRecords);
@@ -148,9 +142,6 @@ public class MedicalRecordDAO {
         medicalRecords.add(medicalRecord);
 
         try {
-//            File tempFile = new File("data/medical_records_tmp.json");
-//            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-//            tempFile.renameTo(medicalRecordsFile);
             File tempFile = new File("data", "medical_records_tmp.json");
             mapper.writerWithDefaultPrettyPrinter()
                     .writeValue(tempFile, medicalRecords);
@@ -190,9 +181,6 @@ public class MedicalRecordDAO {
                 medicalRecord.setRecordStatus(RecordStatus.COMPLETED);
 
                 try {
-//                    File tempFile = new File("data/medical_records_tmp.json");
-//                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-//                    tempFile.renameTo(medicalRecordsFile);
                     File tempFile = new File("data", "medical_records_tmp.json");
                     mapper.writerWithDefaultPrettyPrinter()
                             .writeValue(tempFile, medicalRecords);
@@ -268,9 +256,6 @@ public class MedicalRecordDAO {
         }
 
         try {
-//            File tempFile = new File("data/medical_records_tmp.json");
-//            mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, medicalRecords);
-//            tempFile.renameTo(medicalRecordsFile);
             File tempFile = new File("data", "medical_records_tmp.json");
             mapper.writerWithDefaultPrettyPrinter()
                     .writeValue(tempFile, medicalRecords);
@@ -303,9 +288,6 @@ public class MedicalRecordDAO {
                 record.setHandledBy(doctorName);
 
                 try {
-//                    File tempFile = new File("data/medical_records_tmp.json");
-//                    mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, records);
-//                    tempFile.renameTo(medicalRecordsFile);
                     File tempFile = new File("data", "medical_records_tmp.json");
                     mapper.writerWithDefaultPrettyPrinter().writeValue(tempFile, records);
                     Files.move(
@@ -360,12 +342,37 @@ public class MedicalRecordDAO {
                                     && RecordStatus.valueOf(record.getRecordStatus()) == RecordStatus.COMPLETED);
     }
 
-    public List<MedicalRecordDTO> getPatientHistoryForDoctor(String doctorId) {
+    public List<PatientHistoryDTO> getPatientHistoryForDoctor(String doctorId) {
+
+        AppointmentDAO appointmentDAO = new AppointmentDAO();
+
+        List<String> patientIds = appointmentDAO.getAppointments()
+                .stream()
+                .filter(appointment -> doctorId.equals(appointment.getDoctorId()))
+                .map(appointment -> appointment.getPatientId())
+                .distinct()
+                .toList();
 
         return getMedicalRecords()
                 .stream()
-                .filter(record -> doctorId.equals(record.getHandledBy()))
+                .filter(record -> patientIds.contains(record.getPatientId()))
                 .filter(record -> record.getRecordStatus().equalsIgnoreCase("COMPLETED"))
+                .map(record -> {
+                    PatientHistoryDTO history = new PatientHistoryDTO();
+
+                    history.setMedicalRecordId(record.getMedicalRecordId());
+                    history.setPatientId(record.getPatientId());
+                    history.setPatientName(patientDAO.getPatientById(record.getPatientId()).getName());
+                    history.setRecordDateTime(record.getRecordDateTime());
+                    history.setRecordType(record.getRecordType());
+                    history.setHandledBy(record.getHandledBy());
+                    history.setDiagnosis(record.getDiagnosis());
+                    history.setTreatmentGiven(record.getTreatmentGiven());
+                    history.setPrescription(record.getPrescription());
+                    history.setNotes(record.getNotes());
+
+                    return history;
+                })
                 .toList();
     }
 }
