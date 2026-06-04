@@ -1,8 +1,12 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.AppointmentDTO;
+import patient.management.system.dto.DoctorDTO;
 import patient.management.system.model.User;
+import patient.management.system.service.DoctorService;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -13,18 +17,33 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.List;
 
 public class DoctorDashboardPanel extends JPanel {
     private final User loggedInUser;
+    private final DoctorService doctorService;
+    private final JLabel todayValue;
+    private final JLabel upcomingValue;
+    private final JLabel completedValue;
+    private final JLabel pendingValue;
+    private final DefaultTableModel appointmentModel;
+    private DoctorDTO loggedInDoctor;
 
     public DoctorDashboardPanel(User loggedInUser) {
         super(new BorderLayout(18, 18));
         this.loggedInUser = loggedInUser;
+        this.doctorService = new DoctorService();
+        this.todayValue = statValueLabel();
+        this.upcomingValue = statValueLabel();
+        this.completedValue = statValueLabel();
+        this.pendingValue = statValueLabel();
+        this.appointmentModel = buildAppointmentModel();
         setBackground(UITheme.BACKGROUND);
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
 
         add(buildHeader(), BorderLayout.NORTH);
         add(buildContent(), BorderLayout.CENTER);
+        refreshDashboard();
     }
 
     private JPanel buildHeader() {
@@ -52,14 +71,20 @@ public class DoctorDashboardPanel extends JPanel {
     private JPanel buildStatsPanel() {
         JPanel stats = new JPanel(new GridLayout(1, 4, 14, 14));
         stats.setOpaque(false);
-        stats.add(statCard("Today's Appointments", "09", UITheme.SOFT_BLUE, UITheme.BLUE));
-        stats.add(statCard("Upcoming Appointments", "18", UITheme.SOFT_GREEN, UITheme.SUCCESS));
-        stats.add(statCard("Completed Today", "04", UITheme.SOFT_YELLOW, UITheme.WARNING));
-        stats.add(statCard("Pending Records", "05", UITheme.SOFT_RED, UITheme.DANGER));
+        stats.add(statCard("Today's Appointments", todayValue, UITheme.SOFT_BLUE, UITheme.BLUE));
+        stats.add(statCard("Upcoming Appointments", upcomingValue, UITheme.SOFT_GREEN, UITheme.SUCCESS));
+        stats.add(statCard("Completed Today", completedValue, UITheme.SOFT_YELLOW, UITheme.WARNING));
+        stats.add(statCard("Pending Records", pendingValue, UITheme.SOFT_RED, UITheme.DANGER));
         return stats;
     }
 
-    private JPanel statCard(String title, String value, Color background, Color foreground) {
+    private JLabel statValueLabel() {
+        JLabel valueLabel = new JLabel("00");
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        return valueLabel;
+    }
+
+    private JPanel statCard(String title, JLabel valueLabel, Color background, Color foreground) {
         JPanel card = AppUI.cardPanel();
         card.setBackground(background);
 
@@ -67,8 +92,6 @@ public class DoctorDashboardPanel extends JPanel {
         titleLabel.setFont(UITheme.LABEL_FONT);
         titleLabel.setForeground(UITheme.TEXT);
 
-        JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         valueLabel.setForeground(foreground);
 
         card.add(titleLabel, BorderLayout.NORTH);
@@ -83,8 +106,8 @@ public class DoctorDashboardPanel extends JPanel {
         return card;
     }
 
-    private JScrollPane buildAppointmentsTable() {
-        DefaultTableModel model = new DefaultTableModel(
+    private DefaultTableModel buildAppointmentModel() {
+        return new DefaultTableModel(
                 new String[]{"Appointment ID", "Patient Name", "Date", "Time", "Patient Description", "Status"},
                 0
         ) {
@@ -93,19 +116,51 @@ public class DoctorDashboardPanel extends JPanel {
                 return false;
             }
         };
+    }
 
-        /*
-         * Backend integration point:
-         * Later, load this doctor's SCHEDULED / RESCHEDULED / COMPLETED appointments.
-         */
-        model.addRow(new Object[]{"A101", "Ali Raza", "2026-05-28", "09:00 AM", "Chest pain", "SCHEDULED"});
-        model.addRow(new Object[]{"A102", "Sara Ali", "2026-05-28", "10:00 AM", "Follow-up", "RESCHEDULED"});
-        model.addRow(new Object[]{"A103", "Usman Shah", "2026-05-28", "11:00 AM", "Severe headache", "COMPLETED"});
-        model.addRow(new Object[]{"A104", "Hina Noor", "2026-05-29", "12:00 PM", "Consultation", "SCHEDULED"});
-
-        JTable table = AppUI.table(model);
+    private JScrollPane buildAppointmentsTable() {
+        JTable table = AppUI.table(appointmentModel);
         addStatusColors(table);
         return AppUI.tableScrollPane(table);
+    }
+
+    public void refreshDashboard() {
+        try {
+            if (loggedInDoctor == null) {
+                loggedInDoctor = doctorService.getDoctorByUserId(loggedInUser.getUserId());
+            }
+
+            todayValue.setText(String.valueOf(doctorService.getTodayAppointmentsCount(loggedInDoctor.getName())));
+            upcomingValue.setText(String.valueOf(doctorService.getUpcomingAppointmentCount(loggedInDoctor.getName())));
+            completedValue.setText(String.valueOf(doctorService.getCompletedTodayCount(loggedInDoctor.getName())));
+            pendingValue.setText(String.valueOf(doctorService.getPendingRecordsCount(loggedInDoctor.getName())));
+
+            appointmentModel.setRowCount(0);
+            List<AppointmentDTO> appointments = doctorService.getAppointmentsForDoctor(loggedInDoctor.getDoctorId());
+            for (AppointmentDTO appointment : appointments) {
+                appointmentModel.addRow(new Object[]{
+                        appointment.getAppointmentId(),
+                        appointment.getPatientName(),
+                        appointment.getAppointmentDate(),
+                        formatHour(appointment.getAppointmentHour()),
+                        appointment.getPatientDescription(),
+                        appointment.getStatus()
+                });
+            }
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Load Doctor Dashboard",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    private String formatHour(int hour) {
+        int displayHour = hour % 12 == 0 ? 12 : hour % 12;
+        String suffix = hour < 12 ? "AM" : "PM";
+        return String.format("%02d:00 %s", displayHour, suffix);
     }
 
     private void addStatusColors(JTable table) {

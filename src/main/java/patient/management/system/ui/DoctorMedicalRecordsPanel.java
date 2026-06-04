@@ -1,6 +1,10 @@
 package patient.management.system.ui;
 
+import patient.management.system.dto.AppointmentDTO;
+import patient.management.system.dto.DoctorDTO;
+import patient.management.system.dto.PatientHistoryDTO;
 import patient.management.system.model.User;
+import patient.management.system.service.DoctorService;
 
 import javax.swing.JButton;
 import javax.swing.DefaultListModel;
@@ -33,11 +37,12 @@ import java.util.List;
 
 public class DoctorMedicalRecordsPanel extends JPanel {
     private final User loggedInUser;
+    private final DoctorService doctorService;
     private final DefaultTableModel appointmentModel;
     private final JTable appointmentTable;
-    private final List<HistoryRecord> allHistoryRecords;
-    private final DefaultListModel<HistoryRecord> historyListModel;
-    private final JList<HistoryRecord> historyList;
+    private final List<PatientHistoryDTO> allHistoryRecords;
+    private final DefaultListModel<PatientHistoryDTO> historyListModel;
+    private final JList<PatientHistoryDTO> historyList;
     private final JTextArea historyDetailArea;
     private final JLabel selectedAppointmentLabel;
     private final JTextArea diagnosisArea;
@@ -45,10 +50,12 @@ public class DoctorMedicalRecordsPanel extends JPanel {
     private final JTextArea prescriptionArea;
     private final JTextArea notesArea;
     private final JTextField recordDateTimeField;
+    private DoctorDTO loggedInDoctor;
 
     public DoctorMedicalRecordsPanel(User loggedInUser) {
         super(new BorderLayout(18, 18));
         this.loggedInUser = loggedInUser;
+        this.doctorService = new DoctorService();
         setBackground(UITheme.BACKGROUND);
         setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 24, 22, 24));
 
@@ -56,7 +63,7 @@ public class DoctorMedicalRecordsPanel extends JPanel {
         appointmentTable = AppUI.table(appointmentModel);
         configureAppointmentTable();
 
-        allHistoryRecords = buildHistoryRecords();
+        allHistoryRecords = new ArrayList<>();
         historyListModel = new DefaultListModel<>();
         historyList = new JList<>(historyListModel);
         historyDetailArea = AppUI.textArea("Selected record details");
@@ -80,6 +87,7 @@ public class DoctorMedicalRecordsPanel extends JPanel {
 
         add(buildHeader(), BorderLayout.NORTH);
         add(buildTabs(), BorderLayout.CENTER);
+        refreshPanel();
     }
 
     private JPanel buildHeader() {
@@ -205,33 +213,9 @@ public class DoctorMedicalRecordsPanel extends JPanel {
     }
 
     private DefaultTableModel buildAppointmentModel() {
-        DefaultTableModel model = readOnlyModel(
+        return readOnlyModel(
                 new String[]{"Appointment ID", "Patient ID", "Patient Name", "Date", "Time", "Description", "Status"}
         );
-
-        /*
-         * Backend integration point:
-         * Load only this doctor's assigned appointments that still need a regular medical record.
-         */
-        model.addRow(new Object[]{"A101", "P101", "Ali Raza", "2026-05-30", "09:00 AM", "Chest pain", "SCHEDULED"});
-        model.addRow(new Object[]{"A102", "P102", "Sara Ali", "2026-05-30", "10:00 AM", "Follow-up", "RESCHEDULED"});
-        model.addRow(new Object[]{"A104", "P104", "Hina Noor", "2026-05-31", "12:00 PM", "Consultation", "SCHEDULED"});
-        return model;
-    }
-
-    private List<HistoryRecord> buildHistoryRecords() {
-        List<HistoryRecord> records = new ArrayList<>();
-        /*
-         * Backend integration point:
-         * Use MedicalRecordService.getPatientHistory(patientId), or load all records and filter.
-         */
-        records.add(new HistoryRecord("MR001", "P101", "Ali Raza", "2026-05-10 09:35",
-                "Hypertension", "Lifestyle guidance", "Amlodipine", "Monitor blood pressure.", "Dr. Ahmed"));
-        records.add(new HistoryRecord("MR002", "P102", "Sara Ali", "2026-05-18 11:20",
-                "Seasonal allergy", "Avoid triggers", "Cetirizine", "Review if symptoms continue.", "Dr. Ahmed"));
-        records.add(new HistoryRecord("MR003", "P101", "Ali Raza", "2026-05-25 10:10",
-                "Follow-up", "Continue treatment", "Amlodipine", "Condition improving.", "Dr. Ahmed"));
-        return records;
     }
 
     private DefaultTableModel readOnlyModel(String[] columns) {
@@ -251,7 +235,7 @@ public class DoctorMedicalRecordsPanel extends JPanel {
 
     private void configureHistoryList() {
         historyList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        historyList.setCellRenderer(new HistoryRecordRenderer());
+        historyList.setCellRenderer(new PatientHistoryRenderer());
         historyList.setFixedCellHeight(76);
         historyList.setBackground(UITheme.CARD);
         historyList.addListSelectionListener(event -> updateHistoryDetails());
@@ -282,7 +266,7 @@ public class DoctorMedicalRecordsPanel extends JPanel {
 
             private void filter() {
                 String query = searchField.getText().trim();
-                sorter.setRowFilter(query.isEmpty() ? null : javax.swing.RowFilter.regexFilter("(?i)" + query));
+                sorter.setRowFilter(query.isEmpty() ? null : javax.swing.RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(query)));
             }
         });
     }
@@ -311,8 +295,8 @@ public class DoctorMedicalRecordsPanel extends JPanel {
         historyListModel.clear();
         String normalizedQuery = query.toLowerCase();
 
-        for (HistoryRecord record : allHistoryRecords) {
-            if (record.matches(normalizedQuery)) {
+        for (PatientHistoryDTO record : allHistoryRecords) {
+            if (historyMatches(record, normalizedQuery)) {
                 historyListModel.addElement(record);
             }
         }
@@ -320,21 +304,89 @@ public class DoctorMedicalRecordsPanel extends JPanel {
         historyDetailArea.setText("Select a patient record to view its details.");
     }
 
+    public void refreshPanel() {
+        try {
+            if (loggedInDoctor == null) {
+                loggedInDoctor = doctorService.getDoctorByUserId(loggedInUser.getUserId());
+            }
+
+            loadAppointments();
+            loadHistoryRecords();
+            refreshHistoryList("");
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Load Medical Records",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    private void loadAppointments() {
+        try {
+            appointmentModel.setRowCount(0);
+
+            List<AppointmentDTO> appointments =
+                    doctorService.getPendingMedicalRecordAppointments(loggedInDoctor.getDoctorId());
+
+            for (AppointmentDTO appointment : appointments) {
+                appointmentModel.addRow(new Object[]{
+                        appointment.getAppointmentId(),
+                        appointment.getPatientId(),
+                        appointment.getPatientName(),
+                        appointment.getAppointmentDate(),
+                        formatHour(appointment.getAppointmentHour()),
+                        appointment.getPatientDescription(),
+                        appointment.getStatus()
+                });
+            }
+        } catch (RuntimeException exception) {
+            appointmentModel.setRowCount(0);
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Load Appointments",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    private void loadHistoryRecords() {
+        try {
+            allHistoryRecords.clear();
+
+            allHistoryRecords.addAll(
+                    doctorService.getPatientHistoryForDoctor(loggedInDoctor.getDoctorId())
+            );
+        } catch (RuntimeException exception) {
+            allHistoryRecords.clear();
+            historyListModel.clear();
+            historyDetailArea.setText("Select a patient record to view its details.");
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Load Patient History",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
     private void updateHistoryDetails() {
-        HistoryRecord record = historyList.getSelectedValue();
+        PatientHistoryDTO record = historyList.getSelectedValue();
         if (record == null) {
             return;
         }
 
         historyDetailArea.setText(
-                "Patient: " + record.patientName + " (" + record.patientId + ")\n"
-                        + "Record ID: " + record.recordId + "\n"
-                        + "Date & Time: " + record.recordDateTime + "\n"
-                        + "Handled By: " + record.handledBy + "\n\n"
-                        + "Diagnosis\n" + record.diagnosis + "\n\n"
-                        + "Treatment Given\n" + record.treatment + "\n\n"
-                        + "Prescription\n" + record.prescription + "\n\n"
-                        + "Notes\n" + record.notes
+                "Patient: " + value(record.getPatientName()) + " (" + value(record.getPatientId()) + ")\n"
+                        + "Record ID: " + value(record.getMedicalRecordId()) + "\n"
+                        + "Date & Time: " + value(record.getRecordDateTime()) + "\n"
+                        + "Handled By: " + value(record.getHandledBy()) + "\n\n"
+                        + "Diagnosis\n" + value(record.getDiagnosis()) + "\n\n"
+                        + "Treatment Given\n" + value(record.getTreatmentGiven()) + "\n\n"
+                        + "Prescription\n" + value(record.getPrescription()) + "\n\n"
+                        + "Notes\n" + value(record.getNotes())
         );
         historyDetailArea.setCaretPosition(0);
     }
@@ -361,15 +413,24 @@ public class DoctorMedicalRecordsPanel extends JPanel {
                 throw new IllegalArgumentException("Select an appointment and fill all required fields.");
             }
 
-            /*
-             * Backend integration point:
-             * Save a REGULAR MedicalRecord for the selected appointment and patient.
-             * Then mark the appointment COMPLETED and refresh the dashboard/table.
-             */
-            JOptionPane.showMessageDialog(this, "Medical record is ready to be connected to the backend.");
+            int modelRow = appointmentTable.convertRowIndexToModel(appointmentTable.getSelectedRow());
+            String appointmentId = appointmentModel.getValueAt(modelRow, 0).toString();
+
+            doctorService.updateMedicalRecord(
+                    appointmentId,
+                    diagnosisArea.getText().trim(),
+                    treatmentArea.getText().trim(),
+                    prescriptionArea.getText().trim(),
+                    notesArea.getText().trim()
+            );
+
+            JOptionPane.showMessageDialog(this, "Medical record saved successfully.");
             clearForm();
+            refreshPanel();
         } catch (IllegalArgumentException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Validation Error", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(this, exception.getMessage(), "Unable to Save Medical Record", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -394,43 +455,28 @@ public class DoctorMedicalRecordsPanel extends JPanel {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 
-    private static class HistoryRecord {
-        private final String recordId;
-        private final String patientId;
-        private final String patientName;
-        private final String recordDateTime;
-        private final String diagnosis;
-        private final String treatment;
-        private final String prescription;
-        private final String notes;
-        private final String handledBy;
-
-        HistoryRecord(String recordId, String patientId, String patientName, String recordDateTime,
-                      String diagnosis, String treatment, String prescription, String notes, String handledBy) {
-            this.recordId = recordId;
-            this.patientId = patientId;
-            this.patientName = patientName;
-            this.recordDateTime = recordDateTime;
-            this.diagnosis = diagnosis;
-            this.treatment = treatment;
-            this.prescription = prescription;
-            this.notes = notes;
-            this.handledBy = handledBy;
-        }
-
-        boolean matches(String query) {
-            return query.isEmpty()
-                    || patientId.toLowerCase().contains(query)
-                    || patientName.toLowerCase().contains(query)
-                    || diagnosis.toLowerCase().contains(query);
-        }
+    private String formatHour(int hour) {
+        int displayHour = hour % 12 == 0 ? 12 : hour % 12;
+        String suffix = hour < 12 ? "AM" : "PM";
+        return String.format("%02d:00 %s", displayHour, suffix);
     }
 
-    private static class HistoryRecordRenderer extends JPanel implements ListCellRenderer<HistoryRecord> {
+    private String value(String value) {
+        return value == null ? "" : value;
+    }
+
+    private boolean historyMatches(PatientHistoryDTO record, String query) {
+        return query.isEmpty()
+                || value(record.getPatientId()).toLowerCase().contains(query)
+                || value(record.getPatientName()).toLowerCase().contains(query)
+                || value(record.getDiagnosis()).toLowerCase().contains(query);
+    }
+
+    private class PatientHistoryRenderer extends JPanel implements ListCellRenderer<PatientHistoryDTO> {
         private final JLabel patientLabel;
         private final JLabel summaryLabel;
 
-        HistoryRecordRenderer() {
+        PatientHistoryRenderer() {
             super(new GridLayout(2, 1, 0, 4));
             patientLabel = new JLabel();
             summaryLabel = new JLabel();
@@ -443,10 +489,10 @@ public class DoctorMedicalRecordsPanel extends JPanel {
         }
 
         @Override
-        public Component getListCellRendererComponent(JList<? extends HistoryRecord> list, HistoryRecord record,
+        public Component getListCellRendererComponent(JList<? extends PatientHistoryDTO> list, PatientHistoryDTO record,
                                                       int index, boolean isSelected, boolean cellHasFocus) {
-            patientLabel.setText(record.patientName + " | " + record.patientId);
-            summaryLabel.setText(record.recordDateTime + " | " + record.diagnosis);
+            patientLabel.setText(value(record.getPatientName()) + " | " + value(record.getPatientId()));
+            summaryLabel.setText(value(record.getRecordDateTime()) + " | " + value(record.getDiagnosis()));
             setBackground(isSelected ? UITheme.SOFT_BLUE : (index % 2 == 0 ? Color.WHITE : new Color(0xF6FAFE)));
             setBorder(javax.swing.BorderFactory.createCompoundBorder(
                     javax.swing.BorderFactory.createMatteBorder(

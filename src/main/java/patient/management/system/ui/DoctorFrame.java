@@ -30,6 +30,8 @@ public class DoctorFrame extends JFrame {
     private final CardLayout cardLayout;
     private final JPanel contentPanel;
     private final Map<String, JButton> menuButtons;
+    private DoctorDashboardPanel dashboardPanel;
+    private DoctorMedicalRecordsPanel medicalRecordsPanel;
 
     public DoctorFrame(JFrame loginFrame, User loggedInUser) {
         this.loginFrame = loginFrame;
@@ -98,14 +100,21 @@ public class DoctorFrame extends JFrame {
     }
 
     private JPanel buildCards() {
-        contentPanel.add(new DoctorDashboardPanel(loggedInUser), "DASHBOARD");
-        contentPanel.add(new DoctorMedicalRecordsPanel(loggedInUser), "MEDICAL_RECORDS");
+        dashboardPanel = new DoctorDashboardPanel(loggedInUser);
+        medicalRecordsPanel = new DoctorMedicalRecordsPanel(loggedInUser);
+        contentPanel.add(dashboardPanel, "DASHBOARD");
+        contentPanel.add(medicalRecordsPanel, "MEDICAL_RECORDS");
         return contentPanel;
     }
 
     private void addMenuButton(JPanel sidebar, String label, String cardName, int row) {
         JButton button = sidebarButton(label);
         button.addActionListener(event -> {
+            if ("DASHBOARD".equals(cardName) && dashboardPanel != null) {
+                dashboardPanel.refreshDashboard();
+            } else if ("MEDICAL_RECORDS".equals(cardName) && medicalRecordsPanel != null) {
+                medicalRecordsPanel.refreshPanel();
+            }
             cardLayout.show(contentPanel, cardName);
             setActiveMenu(cardName);
         });
