@@ -17,24 +17,6 @@
   "password" : "admin123",
   "role" : "ADMIN"
 }, {
-  "userId" : "USR0004",
-  "username" : "red_team",
-  "name" : "Red Emergency Team",
-  "password" : "red123",
-  "role" : "EMERGENCY_TEAM"
-}, {
-  "userId" : "USR0005",
-  "username" : "yellow_team",
-  "name" : "Yellow Emergency Team",
-  "password" : "yellow123",
-  "role" : "EMERGENCY_TEAM"
-}, {
-  "userId" : "USR0006",
-  "username" : "green_team",
-  "name" : "Green Emergency Team",
-  "password" : "green123",
-  "role" : "EMERGENCY_TEAM"
-}, {
   "userId" : "USR0007",
   "username" : "ahmed.khan",
   "name" : "Dr. Ahmed Khan",
