@@ -1,0 +1,31 @@
+[ {
+  "emergencyCaseId" : "EMC0001",
+  "patientId" : "PT0001",
+  "temporaryPatientId" : null,
+  "isTemporaryPatient" : false,
+  "patientName" : "Ali Raza",
+  "age" : 22,
+  "gender" : "Male",
+  "cnic" : "37405-1234567-1",
+  "arrivalTime" : "2026-06-05T22:40:49.383059100",
+  "initialComplaint" : "Severe chest pain",
+  "triageColor" : "RED",
+  "triageRemark" : "Critical",
+  "status" : "COMPLETE",
+  "finalOutcome" : "MOVED_TO_ICU"
+}, {
+  "emergencyCaseId" : "EMC0002",
+  "patientId" : "PT0003",
+  "temporaryPatientId" : null,
+  "isTemporaryPatient" : false,
+  "patientName" : "Zain Ali",
+  "age" : 50,
+  "gender" : "Male",
+  "cnic" : "42101-9012345-9",
+  "arrivalTime" : "2026-06-05T22:42:29.083560900",
+  "initialComplaint" : "Severe headache",
+  "triageColor" : "YELLOW",
+  "triageRemark" : "Observation required",
+  "status" : "COMPLETE",
+  "finalOutcome" : "DISCHARGED"
+} ]

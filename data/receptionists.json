@@ -5,4 +5,11 @@
   "receptionistId" : "RECPT0001",
   "shift" : "EVENING",
   "isActive" : true
+}, {
+  "userId" : "USR0015",
+  "username" : "recep123",
+  "name" : "Hamza Malik",
+  "receptionistId" : "RECPT0002",
+  "shift" : "MORNING",
+  "isActive" : true
 } ]

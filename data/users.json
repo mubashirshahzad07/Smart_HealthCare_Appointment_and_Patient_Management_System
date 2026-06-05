@@ -64,4 +64,10 @@
   "name" : "Yellow Emergency Team",
   "password" : "yellow123",
   "role" : "EMERGENCY_TEAM"
+}, {
+  "userId" : "USR0015",
+  "username" : "recep123",
+  "name" : "Hamza Malik",
+  "password" : "pas123",
+  "role" : "RECEPTIONIST"
 } ]

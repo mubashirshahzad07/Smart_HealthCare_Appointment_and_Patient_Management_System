@@ -1,0 +1,50 @@
+[ {
+  "patientId" : "PT0001",
+  "gender" : "Male",
+  "name" : "Ali Raza",
+  "age" : 22,
+  "email" : "ali.raza@gmail.com",
+  "cnic" : "37405-1234567-1"
+}, {
+  "patientId" : "PT0002",
+  "gender" : "Female",
+  "name" : "Maryam Khan",
+  "age" : 18,
+  "email" : "maryam.khan@gmail.com",
+  "cnic" : "35201-1122334-0"
+}, {
+  "patientId" : "PT0003",
+  "gender" : "Male",
+  "name" : "Zain Ali",
+  "age" : 50,
+  "email" : "zain.ali@gmail.com",
+  "cnic" : "42101-9012345-9"
+}, {
+  "patientId" : "PT0004",
+  "gender" : "Female",
+  "name" : "Hina Aslam",
+  "age" : 39,
+  "email" : "hina.aslam@gmail.com",
+  "cnic" : "61101-8901234-8"
+}, {
+  "patientId" : "PT0005",
+  "gender" : "Male",
+  "name" : "Hassan Khan",
+  "age" : 28,
+  "email" : "hassan.khan@gmail.com",
+  "cnic" : "61101-3456789-3"
+}, {
+  "patientId" : "PT0006",
+  "gender" : "Male",
+  "name" : "Ahmed Khan",
+  "age" : 40,
+  "email" : "ahmed.khan@gmail.com",
+  "cnic" : "42103-9871234-8"
+}, {
+  "patientId" : "PT0007",
+  "gender" : "Female",
+  "name" : "Sarah Malik",
+  "age" : 27,
+  "email" : "sarah.malik@gmail.com",
+  "cnic" : "61321-9812345-8"
+} ]
