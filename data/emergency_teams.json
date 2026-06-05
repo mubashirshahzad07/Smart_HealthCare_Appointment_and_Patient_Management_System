@@ -1,0 +1,19 @@
+[ {
+  "userId" : "USR0012",
+  "username" : "red_team",
+  "name" : "Red Emergency Team",
+  "teamId" : "EMT0001",
+  "triageColor" : "RED"
+}, {
+  "userId" : "USR0013",
+  "username" : "green_team",
+  "name" : "Green Emergency Team",
+  "teamId" : "EMT0002",
+  "triageColor" : "GREEN"
+}, {
+  "userId" : "USR0014",
+  "username" : "yellow_team",
+  "name" : "Yellow Emergency Team",
+  "teamId" : "EMT0003",
+  "triageColor" : "YELLOW"
+} ]

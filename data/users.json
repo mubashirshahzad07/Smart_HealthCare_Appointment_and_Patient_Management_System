@@ -64,4 +64,22 @@
   "name" : "Dr. Bilal Hassan",
   "password" : "pass123",
   "role" : "DOCTOR"
+}, {
+  "userId" : "USR0012",
+  "username" : "red_team",
+  "name" : "Red Emergency Team",
+  "password" : "red123",
+  "role" : "EMERGENCY_TEAM"
+}, {
+  "userId" : "USR0013",
+  "username" : "green_team",
+  "name" : "Green Emergency Team",
+  "password" : "green123",
+  "role" : "EMERGENCY_TEAM"
+}, {
+  "userId" : "USR0014",
+  "username" : "yellow_team",
+  "name" : "Yellow Emergency Team",
+  "password" : "yellow123",
+  "role" : "EMERGENCY_TEAM"
 } ]
