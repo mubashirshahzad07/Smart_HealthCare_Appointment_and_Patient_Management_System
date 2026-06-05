@@ -25,8 +25,11 @@ public class AdminReportsPanel extends JPanel {
 
     public AdminReportsPanel() {
         setLayout(new BorderLayout());
-        
-        JPanel panel = AdminUI.basePanel("View Reports", "Hospital activity summary: appointments, finances, and emergency statistics");
+
+        JPanel panel = AdminUI.basePanel(
+                "View Reports",
+                "Hospital activity summary: appointments, finances, and emergency statistics"
+        );
 
         JPanel cards = new JPanel(new GridLayout(2, 4, 14, 14));
         cards.setBackground(AdminUI.LIGHT);
@@ -61,7 +64,14 @@ public class AdminReportsPanel extends JPanel {
     }
 
     private void showAppointmentReportDialog() {
-        String[] columns = {"Doctor ID", "Doctor Name", "Total Appointments", "Completed", "Canceled", "Rescheduled"};
+        String[] columns = {
+                "Doctor ID",
+                "Doctor Name",
+                "Total Appointments",
+                "Completed",
+                "Canceled",
+                "Rescheduled"
+        };
 
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
@@ -85,14 +95,25 @@ public class AdminReportsPanel extends JPanel {
             }
 
         } catch (RuntimeException e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Appointment Report Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this,
+                    e.getMessage(),
+                    "Appointment Report Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
 
         showReportDialog("Appointment Report Summary", model, -1);
     }
 
     private void showEmergencyReportDialog() {
-        String[] columns = {"Triage Color", "Total Cases", "Completed", "Moved to ICU", "Deceased"};
+        String[] columns = {
+                "Triage Color",
+                "Total Cases",
+                "Completed",
+                "Moved to ICU",
+                "Deceased"
+        };
 
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
@@ -105,6 +126,11 @@ public class AdminReportsPanel extends JPanel {
             List<EmergencyReportDTO> reports = adminService.getEmergencyReport();
 
             for (EmergencyReportDTO report : reports) {
+
+                if ("BLACK".equalsIgnoreCase(String.valueOf(report.getTriageColor()))) {
+                    continue;
+                }
+
                 model.addRow(new Object[]{
                         report.getTriageColor(),
                         report.getTotalCases(),
@@ -115,7 +141,12 @@ public class AdminReportsPanel extends JPanel {
             }
 
         } catch (RuntimeException e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Emergency Report Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this,
+                    e.getMessage(),
+                    "Emergency Report Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
 
         showReportDialog("Emergency Report Summary", model, 0);
