@@ -290,4 +290,13 @@ public class DoctorDAO {
 
         throw new RuntimeException("Doctor is not registered.");
     }
+
+    public boolean doctorExists(String doctorId) {
+        for (Doctor doctor : getAllDoctorsInternal()) {
+            if (doctor.getDoctorId().equals(doctorId)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

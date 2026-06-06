@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import patient.management.system.model.DoctorSchedule;
-import patient.management.system.model.Doctor;
+import patient.management.system.dto.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -97,19 +97,9 @@ public class DoctorScheduleDAO {
     }
 
     private void doctorRegistered(String doctorId) {
-
-        DoctorDAO doctorDAO = new DoctorDAO();
-        List<Doctor> doctors = doctorDAO.getActiveDoctorsInternal();
-
-        for (Doctor doctor : doctors) {
-
-            if (doctor.getDoctorId().equals(doctorId)) {
-
-                return;
-            }
+        if (!new DoctorDAO().doctorExists(doctorId)) {
+            throw new RuntimeException("Doctor is not registered.");
         }
-
-        throw new RuntimeException("Doctor is not registered.");
     }
 
     private void duplicateSchedule(
