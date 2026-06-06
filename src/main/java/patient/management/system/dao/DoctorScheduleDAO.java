@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import patient.management.system.model.DoctorSchedule;
-import patient.management.system.dto.*;
 
 import java.io.File;
 import java.io.IOException;

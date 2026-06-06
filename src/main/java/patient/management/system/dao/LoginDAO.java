@@ -1,6 +1,7 @@
 package patient.management.system.dao;
 
 import patient.management.system.model.*;
+import patient.management.system.dto.*;
 
 import java.util.ArrayList;
 import java.io.*;
@@ -48,14 +49,32 @@ public class LoginDAO {
 }
 
     public User login(String username, String password, String role) {
-        ArrayList<User> users = getUsersInternal(); 
+
+        ArrayList<User> users = getUsersInternal();
 
         for (User user : users) {
             boolean usernameMatch = user.getUsername().equals(username);
             boolean passwordMatch = user.getPassword().equals(password);
-            boolean roleMatch = user.getRole().toString().toLowerCase().equals(role.toLowerCase());
+            boolean roleMatch = user.getRole().equalsIgnoreCase(role);
 
             if (usernameMatch && passwordMatch && roleMatch) {
+
+                if (role.equalsIgnoreCase("DOCTOR")) {
+                    DoctorDTO doctor = new DoctorDAO().getDoctorByUserId(user.getUserId());
+
+                    if (!doctor.getIsActive()) {
+                        throw new RuntimeException("Doctor account is inactive.");
+                    }
+                }
+
+                if (role.equalsIgnoreCase("RECEPTIONIST")) {
+                    Receptionist receptionist = new ReceptionistDAO().getReceptionistByUserId(user.getUserId());
+
+                    if (!receptionist.getIsActive()) {
+                        throw new RuntimeException("Receptionist account is inactive.");
+                    }
+                }
+
                 return user;
             }
         }

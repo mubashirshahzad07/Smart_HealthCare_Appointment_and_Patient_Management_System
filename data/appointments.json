@@ -18,7 +18,7 @@
   "doctorId" : "DR0005",
   "receptionistId" : "RECPT0001",
   "patientDescription" : "General checkup",
-  "status" : "SCHEDULED",
+  "status" : "IN_PROGRESS",
   "doctorName" : "Dr. Ayesha Malik",
   "patientName" : "Maryam Khan",
   "willingToReschedule" : false

@@ -148,28 +148,6 @@ public class DoctorDAO {
         }
     }
 
-    private ArrayList<Doctor> getInactiveDoctorsInternal() {
-
-        try {
-
-            if (!file.exists() || file.length() == 0) {
-                return new ArrayList<>();
-            }
-
-            ArrayList<Doctor> doctors = mapper.readValue(
-                    file,
-                    new TypeReference<ArrayList<Doctor>>() {
-                    });
-
-            doctors.removeIf(doctor -> doctor.getIsActive());
-
-            return doctors;
-
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to load doctors data.");
-        }
-    }
-
     public List<DoctorDTO> getInactiveDoctors() {
 
         try {
