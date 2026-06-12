@@ -110,6 +110,15 @@ public class AdminService {
         }
     }
 
+    //update receptionist shift
+    public void updateReceptionistShift(String id, Receptionist.Shift newShift) {
+    try {
+        receptionistDAO.updateReceptionistShift(id, newShift);
+    } catch (RuntimeException e) {
+        throw new RuntimeException(e.getMessage(), e);
+    }
+}
+
     public List<ReceptionistDTO> getAllReceptionists() {
         try {
             return receptionistDAO.getAllReceptionists();

@@ -1,7 +1,6 @@
 package patient.management.system.ui;
 
 import patient.management.system.dto.DoctorDTO;
-import patient.management.system.model.Doctor;
 import patient.management.system.model.DoctorSchedule;
 import patient.management.system.service.AdminService;
 
@@ -19,10 +18,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 public class AdminDoctorsPanel extends JPanel {
-    private final AdminService adminService = new AdminService();
+    private final AdminService adminService;
     private final DefaultTableModel doctorModel;
 
     private static final String[] FULL_DAYS = {
@@ -32,8 +34,13 @@ public class AdminDoctorsPanel extends JPanel {
     private static final String[] SHIFTS = {"MORNING", "EVENING"};
 
     public AdminDoctorsPanel() {
+        this.adminService = new AdminService();
         setLayout(new BorderLayout());
-        JPanel panel = AdminUI.basePanel("Manage Doctors", "Add, update schedule/fee, and remove doctor records");
+
+        JPanel panel = AdminUI.basePanel(
+                "Manage Doctors",
+                "Add, update schedule/fee, and remove doctor records"
+        );
 
         String[] columns = {"Doctor ID", "Name", "Specialization", "Schedule", "Fee (PKR)", "Status"};
 
@@ -44,52 +51,90 @@ public class AdminDoctorsPanel extends JPanel {
             }
         };
 
-        loadDoctors();
-
         JTable table = AdminUI.table(doctorModel);
         table.getColumnModel().getColumn(5).setCellRenderer(new AdminUI.StatusRenderer());
 
-    JButton addButton = AdminUI.actionButton("Add Doctor", AdminUI.GREEN);
-    JButton updateButton = AdminUI.actionButton("Update Schedule/Fee", AdminUI.ORANGE);
-    JButton activateButton = AdminUI.actionButton("Activate Doctor", AdminUI.GREEN);
-    JButton deactivateButton = AdminUI.actionButton("Deactivate Doctor", AdminUI.RED);
-    JButton clearButton = AdminUI.actionButton("Clear", AdminUI.BLUE);
+        loadDoctorsIntoTable();
 
-            addButton.addActionListener(event -> openAddDoctorForm());
-            updateButton.addActionListener(event -> updateSelectedDoctor(table));
-            activateButton.addActionListener(event -> activateSelectedDoctor(table));
-            deactivateButton.addActionListener(event -> deactivateSelectedDoctor(table));
-            clearButton.addActionListener(event -> table.clearSelection());
+        JButton addButton        = AdminUI.actionButton("Add Doctor",          AdminUI.GREEN);
+        JButton updateButton     = AdminUI.actionButton("Update Schedule/Fee", AdminUI.ORANGE);
+        JButton deactivateButton = AdminUI.actionButton("Deactivate Doctor",   AdminUI.RED);
+        JButton clearButton      = AdminUI.actionButton("Clear",               AdminUI.BLUE);
+
+        addButton.addActionListener(event -> openAddDoctorForm());
+        updateButton.addActionListener(event -> updateSelectedDoctor(table));
+        deactivateButton.addActionListener(event -> deactivateSelectedDoctor(table));
+        clearButton.addActionListener(event -> table.clearSelection());
 
         panel.add(AdminUI.searchBar("Search doctor by name or ID", table, 0, 1), BorderLayout.BEFORE_FIRST_LINE);
         panel.add(AdminUI.tableCard(table), BorderLayout.CENTER);
-        panel.add(AdminUI.buttonBar(addButton, updateButton, activateButton, deactivateButton, clearButton), BorderLayout.SOUTH);
-         add(panel, BorderLayout.CENTER);
+        panel.add(AdminUI.buttonBar(addButton, updateButton, deactivateButton, clearButton), BorderLayout.SOUTH);
+
+        add(panel, BorderLayout.CENTER);
     }
 
-    private void loadDoctors() {
-        doctorModel.setRowCount(0);
-
+    private void loadDoctorsIntoTable() {
         try {
-            List<DoctorDTO> doctors = adminService.getAllDoctors();
+            doctorModel.setRowCount(0);
 
-            for (DoctorDTO doctor : doctors) {
+            for (DoctorDTO doctor : adminService.getAllDoctors()) {
                 doctorModel.addRow(new Object[]{
                         doctor.getDoctorId(),
                         doctor.getName(),
                         doctor.getSpecialization(),
-                        "Schedule not available in DoctorDTO",
+                        formatSchedule(doctor.getSchedules()),
                         String.valueOf(doctor.getAppointmentFee()),
-                        doctor.getIsActive() ? "Available" : "Inactive"
+                        doctor.getIsActive() ? "Active" : "Inactive"
                 });
             }
 
-        } catch (RuntimeException e) {
-            JOptionPane.showMessageDialog(this,
-                    e.getMessage(),
-                    "Load Doctors Error",
-                    JOptionPane.ERROR_MESSAGE);
+        } catch (RuntimeException exception) {
+            doctorModel.setRowCount(0);
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Unable to Load Doctors",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
+    }
+
+    private String formatSchedule(List<DoctorSchedule> schedules) {
+        if (schedules == null || schedules.isEmpty()) {
+            return "No schedule";
+        }
+
+        Map<DoctorSchedule.Shift, List<DoctorSchedule.Day>> daysByShift =
+                new EnumMap<>(DoctorSchedule.Shift.class);
+
+        for (DoctorSchedule schedule : schedules) {
+            daysByShift
+                    .computeIfAbsent(schedule.getShift(), shift -> new ArrayList<>())
+                    .add(schedule.getDay());
+        }
+
+        List<String> parts = new ArrayList<>();
+
+        for (Map.Entry<DoctorSchedule.Shift, List<DoctorSchedule.Day>> entry : daysByShift.entrySet()) {
+            List<DoctorSchedule.Day> days = entry.getValue();
+            days.sort(Enum::compareTo);
+
+            DoctorSchedule.Day firstDay = days.get(0);
+            DoctorSchedule.Day lastDay = days.get(days.size() - 1);
+
+            String daysText = firstDay == lastDay
+                    ? formatDay(firstDay)
+                    : formatDay(firstDay) + " - " + formatDay(lastDay);
+
+            parts.add(daysText + " | " + entry.getKey());
+        }
+
+        return String.join("; ", parts);
+    }
+
+    private String formatDay(DoctorSchedule.Day day) {
+        String lower = day.toString().toLowerCase();
+        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
 
     private void openAddDoctorForm() {
@@ -105,19 +150,7 @@ public class AdminDoctorsPanel extends JPanel {
         JTextField usernameField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
         JTextField nameField = new JTextField();
-
-        JComboBox<String> specializationBox = new JComboBox<>(new String[]{
-                "GENERAL_PHYSICIAN",
-                "CARDIOLOGIST",
-                "DERMATOLOGIST",
-                "ORTHOPEDIC",
-                "PEDIATRICIAN",
-                "NEUROLOGIST",
-                "ENT",
-                "GYNECOLOGIST",
-                "PSYCHIATRIST"
-        });
-
+        JTextField specializationField = new JTextField();
         JTextField feeField = new JTextField();
 
         JComboBox<String> fromDayBox = new JComboBox<>(FULL_DAYS);
@@ -134,16 +167,22 @@ public class AdminDoctorsPanel extends JPanel {
 
         form.add(AdminUI.label("Username:"));
         form.add(usernameField);
+
         form.add(AdminUI.label("Password:"));
         form.add(passwordField);
+
         form.add(AdminUI.label("Full Name:"));
         form.add(nameField);
+
         form.add(AdminUI.label("Specialization:"));
-        form.add(specializationBox);
+        form.add(specializationField);
+
         form.add(AdminUI.label("Appointment Fee:"));
         form.add(feeField);
+
         form.add(AdminUI.label("Days:"));
         form.add(dayPanel);
+
         form.add(AdminUI.label("Shift:"));
         form.add(shiftBox);
 
@@ -152,45 +191,30 @@ public class AdminDoctorsPanel extends JPanel {
             String username = usernameField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
             String name = nameField.getText().trim();
-            String feeText = feeField.getText().trim();
+            String specialization = specializationField.getText().trim();
+            String fee = feeField.getText().trim();
 
-            if (username.isEmpty() || password.isEmpty() || name.isEmpty() || feeText.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog,
+            if (username.isEmpty() || password.isEmpty() || name.isEmpty()
+                    || specialization.isEmpty() || fee.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        dialog,
                         "All fields are required.",
                         "Validation Error",
-                        JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.ERROR_MESSAGE
+                );
                 return;
             }
 
-            try {
-                double fee = Double.parseDouble(feeText);
+            String fromDay = (String) fromDayBox.getSelectedItem();
+            String toDay = (String) toDayBox.getSelectedItem();
+            String shift = (String) shiftBox.getSelectedItem();
+            String schedule = fromDay + " - " + toDay + " | " + shift;
 
-                Doctor.Specialization specialization =
-                        Doctor.Specialization.valueOf(specializationBox.getSelectedItem().toString());
+            String doctorId = "D" + String.format("%03d", doctorModel.getRowCount() + 1);
+            doctorModel.addRow(new Object[]{doctorId, name, specialization, schedule, fee, "Available"});
 
-                DoctorSchedule.Day startDay = toDoctorDay(fromDayBox.getSelectedItem().toString());
-                DoctorSchedule.Day endDay = toDoctorDay(toDayBox.getSelectedItem().toString());
-                DoctorSchedule.Shift shift =
-                        DoctorSchedule.Shift.valueOf(shiftBox.getSelectedItem().toString());
-
-                adminService.addDoctor(username, password, name, fee, specialization, startDay, endDay, shift);
-
-                loadDoctors();
-                JOptionPane.showMessageDialog(this, "Doctor added successfully.");
-                dialog.dispose();
-
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(dialog,
-                        "Fee must be a valid number.",
-                        "Validation Error",
-                        JOptionPane.ERROR_MESSAGE);
-
-            } catch (RuntimeException e) {
-                JOptionPane.showMessageDialog(dialog,
-                        e.getMessage(),
-                        "Add Doctor Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
+            JOptionPane.showMessageDialog(this, "Doctor added successfully.");
+            dialog.dispose();
         });
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -206,10 +230,12 @@ public class AdminDoctorsPanel extends JPanel {
         int row = table.getSelectedRow();
 
         if (row == -1) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Please select a doctor row to update.",
                     "No Selection",
-                    JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.WARNING_MESSAGE
+            );
             return;
         }
 
@@ -250,57 +276,40 @@ public class AdminDoctorsPanel extends JPanel {
 
         form.add(AdminUI.label("Doctor:"));
         form.add(doctorName);
+
         form.add(AdminUI.label("Days:"));
         form.add(dayPanel);
+
         form.add(AdminUI.label("Shift:"));
         form.add(shiftBox);
+
         form.add(AdminUI.label("Fee (PKR):"));
         form.add(feeField);
 
         JButton submitButton = AdminUI.actionButton("Update", AdminUI.ORANGE);
         submitButton.addActionListener(event -> {
-            String feeText = feeField.getText().trim();
+            String fee = feeField.getText().trim();
 
-            if (feeText.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog,
+            if (fee.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        dialog,
                         "Fee is required.",
                         "Validation Error",
-                        JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.ERROR_MESSAGE
+                );
                 return;
             }
 
-            try {
-                String doctorId = doctorModel.getValueAt(modelRow, 0).toString();
-                double fee = Double.parseDouble(feeText);
+            String fromDay = (String) fromDayBox.getSelectedItem();
+            String toDay = (String) toDayBox.getSelectedItem();
+            String shift = (String) shiftBox.getSelectedItem();
+            String schedule = fromDay + " - " + toDay + " | " + shift;
 
-                DoctorSchedule.Day startDay = toDoctorDay(fromDayBox.getSelectedItem().toString());
-                DoctorSchedule.Day endDay = toDoctorDay(toDayBox.getSelectedItem().toString());
-                DoctorSchedule.Shift shift =
-                        DoctorSchedule.Shift.valueOf(shiftBox.getSelectedItem().toString());
+            doctorModel.setValueAt(schedule, modelRow, 3);
+            doctorModel.setValueAt(fee, modelRow, 4);
 
-                adminService.updateDoctorSchedule(doctorId, startDay, endDay, shift, fee);
-
-                String schedule = fromDayBox.getSelectedItem() + " - " + toDayBox.getSelectedItem()
-                        + " | " + shiftBox.getSelectedItem();
-
-                doctorModel.setValueAt(schedule, modelRow, 3);
-                doctorModel.setValueAt(feeText, modelRow, 4);
-
-                JOptionPane.showMessageDialog(this, "Schedule and fee updated successfully.");
-                dialog.dispose();
-
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(dialog,
-                        "Fee must be a valid number.",
-                        "Validation Error",
-                        JOptionPane.ERROR_MESSAGE);
-
-            } catch (RuntimeException e) {
-                JOptionPane.showMessageDialog(dialog,
-                        e.getMessage(),
-                        "Update Doctor Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
+            JOptionPane.showMessageDialog(this, "Schedule and fee updated successfully.");
+            dialog.dispose();
         });
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -312,81 +321,40 @@ public class AdminDoctorsPanel extends JPanel {
         dialog.setVisible(true);
     }
 
-    private void activateSelectedDoctor(JTable table) {
-    int row = table.getSelectedRow();
-
-    if (row == -1) {
-        JOptionPane.showMessageDialog(this,
-                "Please select a doctor row to activate.",
-                "No Selection",
-                JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-
-    int modelRow = table.convertRowIndexToModel(row);
-    String doctorId = doctorModel.getValueAt(modelRow, 0).toString();
-    String name = doctorModel.getValueAt(modelRow, 1).toString();
-
-    int confirm = JOptionPane.showConfirmDialog(this,
-            "Activate " + name + "?",
-            "Confirm Activation",
-            JOptionPane.YES_NO_OPTION);
-
-    if (confirm == JOptionPane.YES_OPTION) {
-        try {
-            adminService.activateDoctor(doctorId);
-            doctorModel.setValueAt("Available", modelRow, 5);
-            JOptionPane.showMessageDialog(this, "Doctor activated successfully.");
-
-        } catch (RuntimeException e) {
-            JOptionPane.showMessageDialog(this,
-                    e.getMessage(),
-                    "Activate Doctor Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-    }
-}
-
     private void deactivateSelectedDoctor(JTable table) {
         int row = table.getSelectedRow();
 
         if (row == -1) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Please select a doctor row to deactivate.",
                     "No Selection",
-                    JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.WARNING_MESSAGE
+            );
             return;
         }
 
         int modelRow = table.convertRowIndexToModel(row);
-        String doctorId = doctorModel.getValueAt(modelRow, 0).toString();
         String name = doctorModel.getValueAt(modelRow, 1).toString();
 
-        int confirm = JOptionPane.showConfirmDialog(this,
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
                 "Deactivate " + name + "?",
                 "Confirm Deactivation",
-                JOptionPane.YES_NO_OPTION);
+                JOptionPane.YES_NO_OPTION
+        );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                adminService.inactivateDoctor(doctorId);
-                doctorModel.setValueAt("Inactive", modelRow, 5);
-                JOptionPane.showMessageDialog(this, "Doctor deactivated successfully.");
-
-            } catch (RuntimeException e) {
-                JOptionPane.showMessageDialog(this,
-                        e.getMessage(),
-                        "Deactivate Doctor Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
+            doctorModel.setValueAt("Inactive", modelRow, 5);
+            JOptionPane.showMessageDialog(this, "Doctor deactivated successfully.");
         }
     }
 
-    private DoctorSchedule.Day toDoctorDay(String day) {
-        return DoctorSchedule.Day.valueOf(day.trim().toUpperCase());
-    }
-
-    private void preselectDayBoxes(String schedule, JComboBox<String> fromBox, JComboBox<String> toBox) {
+    private void preselectDayBoxes(
+            String schedule,
+            JComboBox<String> fromBox,
+            JComboBox<String> toBox
+    ) {
         try {
             String daysPart = schedule.split("\\|")[0].trim();
             String[] days = daysPart.split("-");

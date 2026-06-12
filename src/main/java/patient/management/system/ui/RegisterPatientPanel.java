@@ -175,6 +175,10 @@ public class RegisterPatientPanel extends JPanel {
             if (age <= 0) {
                 throw new IllegalArgumentException("Age must be greater than 0.");
             }
+            
+            if (age > 120) {
+                throw new IllegalArgumentException("Invalid age.");
+            }
 
             receptionistService.addPatient(name, gender, age, email, cnic);
 

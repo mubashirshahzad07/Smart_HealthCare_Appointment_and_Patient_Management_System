@@ -177,12 +177,46 @@ public class AdminReceptionistsPanel extends JPanel {
         openUpdateShiftForm(table.convertRowIndexToModel(row));
     }
 
-    private void openUpdateShiftForm(int modelRow) {
-        JOptionPane.showMessageDialog(this,
-                "Backend inconsistency: AdminService has no updateReceptionistShift(...) method, so this UI action cannot be integrated with backend yet.",
-                "Cannot Update Shift",
-                JOptionPane.WARNING_MESSAGE);
+ private void openUpdateShiftForm(int modelRow) {
+    String receptionistId = receptionistModel.getValueAt(modelRow, 0).toString();
+    String name = receptionistModel.getValueAt(modelRow, 1).toString();
+
+    String[] shifts = {
+            "Morning (08:00-16:00)",
+            "Evening (16:00-00:00)",
+            "Night (00:00-08:00)"
+    };
+
+    JComboBox<String> shiftBox = new JComboBox<>(shifts);
+
+    int result = JOptionPane.showConfirmDialog(
+            this,
+            shiftBox,
+            "Update Shift for " + name,
+            JOptionPane.OK_CANCEL_OPTION
+    );
+
+    if (result == JOptionPane.OK_OPTION) {
+        try {
+            Receptionist.Shift newShift =
+                    toReceptionistShift(shiftBox.getSelectedItem().toString());
+
+            adminService.updateReceptionistShift(receptionistId, newShift);
+
+            receptionistModel.setValueAt(displayShift(newShift.toString()), modelRow, 3);
+
+            JOptionPane.showMessageDialog(this, "Receptionist shift updated successfully.");
+
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    e.getMessage(),
+                    "Update Shift Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
+}
 
     private void activateSelectedReceptionist(JTable table) {
     int row = table.getSelectedRow();

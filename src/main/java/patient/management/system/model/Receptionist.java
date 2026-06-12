@@ -40,4 +40,8 @@ public class Receptionist extends User {
     public String getShift() {
         return shift.toString();
     }
+
+    public void setShift(Shift shift) {
+        this.shift = shift;
+    }
 }

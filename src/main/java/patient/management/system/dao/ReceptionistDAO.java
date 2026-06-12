@@ -182,6 +182,21 @@ public class ReceptionistDAO {
         throw new RuntimeException("Receptionist not found.");
     }
 
+      //update
+    public void updateReceptionistShift(String id, Receptionist.Shift newShift) {
+    ArrayList<Receptionist> receptionists = getAllReceptionistsInternal();
+
+    for (Receptionist receptionist : receptionists) {
+        if (receptionist.getReceptionistId().equals(id) || receptionist.getUserId().equals(id)) {
+            receptionist.setShift(newShift);
+            save(receptionists);
+            return;
+        }
+    }
+
+    throw new RuntimeException("Receptionist not found.");
+}
+
     public void usernameAvailable(ArrayList<Receptionist> receptionists, String username) {
         for (Receptionist receptionist : receptionists) {
             if (receptionist.getUsername().equals(username)) {
